@@ -8,28 +8,38 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    setError(null);
+    const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    if (authError) {
+      setError(authError.message);
+    }
   }
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
+    setError(null);
+    const { error: authError } = await supabase.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
     setLoading(false);
-    if (!error) setSent(true);
+    if (authError) {
+      setError(authError.message);
+    } else {
+      setSent(true);
+    }
   }
 
   return (
@@ -56,9 +66,21 @@ export default function LoginPage() {
               <p className="text-sm text-muted">
                 We sent a login link to <strong>{email}</strong>
               </p>
+              <button
+                onClick={() => setSent(false)}
+                className="mt-4 text-sm text-primary hover:underline"
+              >
+                Use a different email
+              </button>
             </div>
           ) : (
             <>
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2.5 mb-4">
+                  {error}
+                </div>
+              )}
+
               <button
                 onClick={handleGoogleLogin}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-border rounded-lg px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"

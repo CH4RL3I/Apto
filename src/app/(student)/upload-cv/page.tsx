@@ -3,15 +3,23 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { mockParseCV } from "@/lib/cv/mock-parser";
 import Link from "next/link";
+
+interface ParsedCV {
+  name: string | null;
+  education: string | null;
+  experience: string[];
+  skills: string[];
+  languages: string[];
+}
 
 export default function UploadCVPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [parsed, setParsed] = useState<ReturnType<typeof mockParseCV> | null>(null);
+  const [parsed, setParsed] = useState<ParsedCV | null>(null);
   const [editableSkills, setEditableSkills] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const supabase = createClient();
@@ -30,11 +38,13 @@ export default function UploadCVPage() {
       return;
     }
     setFile(f);
+    setError(null);
   }
 
   async function handleUploadAndParse() {
     if (!file) return;
     setUploading(true);
+    setError(null);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
@@ -47,17 +57,44 @@ export default function UploadCVPage() {
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
-      // Continue anyway with mock parsing for demo
     }
 
-    // Get public URL
+    // Get URL for reference
     const { data: urlData } = supabase.storage
       .from("cvs")
       .getPublicUrl(filePath);
 
-    // Mock parse the CV (in production: send to LLM API)
-    const result = mockParseCV(file.name);
-    result.name = user.user_metadata?.full_name || user.user_metadata?.name || null;
+    // Send to Gemini for real parsing
+    let result: ParsedCV;
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/parse-cv", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to parse CV");
+      }
+
+      result = await response.json();
+    } catch (err) {
+      console.error("Parse error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to analyze CV. You can skip this step and continue."
+      );
+      setUploading(false);
+      return;
+    }
+
+    // Override name with auth data if available
+    if (!result.name) {
+      result.name = user.user_metadata?.full_name || user.user_metadata?.name || null;
+    }
+
     setParsed(result);
     setEditableSkills(result.skills);
 
@@ -79,7 +116,6 @@ export default function UploadCVPage() {
   }
 
   async function handleContinue() {
-    // Update skills if edited
     if (parsed) {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -105,15 +141,20 @@ export default function UploadCVPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-lg">
           {!parsed ? (
-            // Upload state
             <div className="fade-in">
               <h1 className="text-2xl font-semibold text-slate-900 mb-2">
                 Have a CV? Upload it.
               </h1>
               <p className="text-muted mb-8">
-                We&apos;ll extract your skills and experience to improve your career matches.
+                We&apos;ll use AI to extract your skills and experience to improve your career matches.
                 This is optional &mdash; you can skip it.
               </p>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
+                  {error}
+                </div>
+              )}
 
               {/* Drop zone */}
               <div
@@ -186,10 +227,10 @@ export default function UploadCVPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Analyzing your CV...
+                        AI is analyzing your CV...
                       </span>
                     ) : (
-                      "Upload & Analyze"
+                      "Upload & Analyze with AI"
                     )}
                   </button>
                 )}
@@ -218,6 +259,14 @@ export default function UploadCVPage() {
               <p className="text-muted mb-6">
                 We extracted the following from your CV. Edit anything that&apos;s off before continuing.
               </p>
+
+              {/* Name */}
+              {parsed.name && (
+                <div className="bg-white rounded-xl border border-border p-5 mb-4">
+                  <h3 className="text-sm font-medium text-muted mb-1">Name</h3>
+                  <p className="text-slate-900 font-medium">{parsed.name}</p>
+                </div>
+              )}
 
               {/* Education */}
               {parsed.education && (
