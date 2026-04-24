@@ -124,6 +124,13 @@ export default function ExamPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Get CV URL from profile to attach to submission
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("cv_url")
+      .eq("user_id", user.id)
+      .single();
+
     const { data: sub } = await supabase
       .from("submissions")
       .insert({
@@ -132,6 +139,7 @@ export default function ExamPage() {
         status: "in_progress",
         started_at: new Date().toISOString(),
         integrity_signals: { tab_switches: 0, paste_count: 0, fullscreen_exits: 0, time_spent_seconds: 0 },
+        cv_snapshot_url: profile?.cv_url || null,
       })
       .select()
       .single();

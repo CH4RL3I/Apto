@@ -14,7 +14,7 @@ export default async function ResultsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("match_vector, completed_at")
+    .select("match_vector, completed_at, cv_skills")
     .eq("user_id", user.id)
     .single();
 
@@ -24,7 +24,8 @@ export default async function ResultsPage() {
 
   const matched = matchCareers(
     profile.match_vector as number[],
-    (careers || []) as Career[]
+    (careers || []) as Career[],
+    (profile.cv_skills as string[]) || undefined
   );
 
   return (
