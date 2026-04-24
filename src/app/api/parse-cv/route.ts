@@ -79,8 +79,10 @@ Rules:
     });
   } catch (error) {
     console.error("CV parse error:", error);
+    const detail =
+      error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     return NextResponse.json(
-      { error: "Failed to parse CV. Please try again." },
+      { error: `Failed to parse CV: ${detail}` },
       { status: 500 }
     );
   }
