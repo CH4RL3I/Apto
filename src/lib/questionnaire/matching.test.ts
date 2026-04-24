@@ -1,5 +1,5 @@
 import type { Answers } from "./questions.ts";
-import { getMatches, scoreJob, JOBS } from "./matching.ts";
+import { getMatches, scoreJob, JOBS, type ParsedCV } from "./matching.ts";
 
 let failed = 0;
 let passed = 0;
@@ -139,6 +139,80 @@ check(
   "reason lists both matched fields joined with 'and'",
   uxScore.reasons.some((r) => r === "Matches your interest in Design and Product"),
   `reasons: ${JSON.stringify(uxScore.reasons)}`,
+);
+
+// ─── Test 4: CV boosts the matching role ─────────────────────
+const ambiguousAnswers: Answers = {
+  openness: "directional",
+  fields: ["Engineering", "Data"],
+  industries: ["Tech"],
+  phase: "scaleup",
+  mode: "deep",
+  output: "creator",
+  values: ["growth", "content", "salary"],
+};
+const techCv: ParsedCV = {
+  name: "Test Student",
+  education: "BSc Computer Science, University of Lisbon",
+  experience: [
+    "Backend Engineering Intern at FintechCo (6 months) - built REST APIs in Python",
+    "Open-source contributor to a PostgreSQL extension",
+  ],
+  skills: ["Python", "SQL", "PostgreSQL", "Docker", "AWS", "Kubernetes", "REST APIs"],
+  languages: ["English (Fluent)"],
+};
+const noCvMatches = getMatches(ambiguousAnswers);
+const withCvMatches = getMatches(ambiguousAnswers, techCv);
+const sweNoCv = noCvMatches.find((m) => m.id === "swe-backend");
+const sweWithCv = withCvMatches.find((m) => m.id === "swe-backend");
+check(
+  "CV with backend skills boosts swe-backend score",
+  !!sweWithCv && !!sweNoCv && sweWithCv.score > sweNoCv.score,
+  `no-cv=${sweNoCv?.score} with-cv=${sweWithCv?.score}`,
+);
+check(
+  "CV adds a 'background fits' reason",
+  !!sweWithCv && sweWithCv.reasons.some((r) => /background/.test(r)),
+  `reasons: ${JSON.stringify(sweWithCv?.reasons)}`,
+);
+
+// ─── Test 5: CV does not override questionnaire preference ───
+// User wants Marketing/Sport but uploads a tech CV — sport-marketing
+// should still rank above swe-backend.
+const sportPreferenceAnswers: Answers = {
+  openness: "directional",
+  fields: ["Marketing"],
+  industries: ["Sport"],
+  phase: "scaleup",
+  mode: "mixed",
+  output: "creator",
+  values: ["content", "team", "impact"],
+};
+const sportWithTechCv = getMatches(sportPreferenceAnswers, techCv);
+const sportIdsWithCv = sportWithTechCv.map((m) => m.id);
+check(
+  "questionnaire still dominates over CV — sports-marketing in top 2",
+  sportIdsWithCv.slice(0, 2).includes("sports-marketing"),
+  `top: ${sportIdsWithCv.slice(0, 3).join(", ")}`,
+);
+
+// ─── Unit: keyword matching avoids false positives ───────────
+const falsePositiveCv: ParsedCV = {
+  name: null,
+  education: "BA in Service Design from a device-design school",
+  experience: ["Worked at HTML5 conferences"],
+  skills: [],
+  languages: [],
+};
+const swePositiveCheck = scoreJob(
+  JOBS.find((j) => j.id === "swe-backend")!,
+  { fields: [], industries: [], values: [] },
+  falsePositiveCv,
+);
+check(
+  "short keywords don't match inside larger words (no spurious cv score)",
+  swePositiveCheck.score === 0,
+  `got score=${swePositiveCheck.score}, reasons=${JSON.stringify(swePositiveCheck.reasons)}`,
 );
 
 // ─── Summary ─────────────────────────────────────────────────

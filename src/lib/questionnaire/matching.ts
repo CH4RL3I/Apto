@@ -18,6 +18,7 @@ export interface Job {
   mode: "deep" | "coordinator" | "mixed" | "reactive";
   output: "creator" | "optimizer" | "enabler" | "advisor";
   values: Record<ValueKey, 1 | 2 | 3>;
+  keywords: string[];
   caseStudy: string;
 }
 
@@ -25,6 +26,14 @@ export interface ScoredJob extends Job {
   score: number;
   reasons: string[];
   matchPercent: number;
+}
+
+export interface ParsedCV {
+  name: string | null;
+  education: string | null;
+  experience: string[];
+  skills: string[];
+  languages: string[];
 }
 
 const INDUSTRY_LABELS: Record<string, string> = {
@@ -71,6 +80,12 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "creator",
     values: { content: 3, growth: 3, team: 1, impact: 2, flexibility: 3, salary: 3 },
+    keywords: [
+      "python", "java", "go", "rust", "kotlin", "typescript", "node",
+      "backend", "api", "rest", "graphql", "sql", "postgres", "mysql",
+      "redis", "docker", "kubernetes", "aws", "gcp", "azure",
+      "microservices", "system design", "computer science",
+    ],
     caseStudy:
       "An API stops scaling under load — find the bottleneck and design a new architecture.",
   },
@@ -84,6 +99,12 @@ export const JOBS: Job[] = [
     mode: "coordinator",
     output: "enabler",
     values: { content: 2, growth: 3, team: 3, impact: 3, flexibility: 2, salary: 2 },
+    keywords: [
+      "product manager", "product management", "roadmap", "stakeholder",
+      "agile", "scrum", "user research", "kpi", "okr", "jira", "figma",
+      "a/b", "prioritization", "product strategy", "discovery",
+      "specs", "requirements",
+    ],
     caseStudy:
       "Engineering, Design, and Sales all want different features — prioritize the Q2 roadmap and defend it.",
   },
@@ -97,6 +118,12 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "creator",
     values: { content: 3, growth: 2, team: 2, impact: 3, flexibility: 2, salary: 2 },
+    keywords: [
+      "figma", "sketch", "adobe xd", "user research", "wireframe",
+      "prototype", "ui", "ux", "interaction design", "design system",
+      "usability", "user testing", "accessibility", "visual design",
+      "product design",
+    ],
     caseStudy:
       "Redesign the onboarding of a banking app so that users 60+ can get through it without help from support.",
   },
@@ -110,6 +137,13 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "advisor",
     values: { content: 3, growth: 3, team: 1, impact: 2, flexibility: 2, salary: 3 },
+    keywords: [
+      "python", "r", "sql", "pandas", "numpy", "scikit", "scikit-learn",
+      "tensorflow", "pytorch", "machine learning", "deep learning",
+      "statistics", "regression", "classification", "data analysis",
+      "jupyter", "data science", "analytics", "ab testing",
+      "feature engineering", "computer science", "mathematics",
+    ],
     caseStudy:
       "Build a model that predicts customer churn 30 days in advance — and explain it to the Head of Product.",
   },
@@ -123,6 +157,13 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "optimizer",
     values: { content: 2, growth: 3, team: 2, impact: 3, flexibility: 2, salary: 2 },
+    keywords: [
+      "seo", "sem", "google ads", "facebook ads", "tiktok ads", "ppc",
+      "cac", "ltv", "google analytics", "mixpanel", "amplitude",
+      "a/b", "growth", "performance marketing", "hubspot",
+      "paid acquisition", "funnel", "conversion", "email marketing",
+      "lifecycle", "marketing",
+    ],
     caseStudy:
       "CAC payback has climbed to 14 months — test 3 new acquisition channels in 6 weeks.",
   },
@@ -136,6 +177,12 @@ export const JOBS: Job[] = [
     mode: "coordinator",
     output: "advisor",
     values: { content: 3, growth: 3, team: 2, impact: 2, flexibility: 1, salary: 3 },
+    keywords: [
+      "consulting", "powerpoint", "excel", "financial modeling",
+      "case study", "mckinsey", "bcg", "bain", "oliver wyman",
+      "strategy", "due diligence", "stakeholder", "client",
+      "advisory", "business analyst", "operations", "transformation",
+    ],
     caseStudy:
       "An enterprise needs to cut 200M in costs over 18 months — build the structure for Phase 1.",
   },
@@ -149,6 +196,12 @@ export const JOBS: Job[] = [
     mode: "reactive",
     output: "enabler",
     values: { content: 2, growth: 2, team: 3, impact: 3, flexibility: 2, salary: 2 },
+    keywords: [
+      "customer success", "salesforce", "hubspot", "onboarding",
+      "renewal", "churn", "account management", "saas", "support",
+      "client", "qbr", "expansion", "upsell", "retention",
+      "stakeholder",
+    ],
     caseStudy:
       "An enterprise customer is threatening to churn — figure out why and build a rescue plan with Product.",
   },
@@ -162,6 +215,12 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "optimizer",
     values: { content: 3, growth: 3, team: 2, impact: 3, flexibility: 2, salary: 1 },
+    keywords: [
+      "startup", "founder", "operations", "fundraising", "notion",
+      "airtable", "ops", "chief of staff", "early stage", "seed",
+      "series a", "hiring", "recruiting", "crm", "pitch deck",
+      "entrepreneurship",
+    ],
     caseStudy:
       "In 2 weeks the founder needs a CRM set up, Q3 hires lined up, and a Series A pitch — prioritize.",
   },
@@ -175,6 +234,12 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "advisor",
     values: { content: 3, growth: 3, team: 1, impact: 2, flexibility: 2, salary: 3 },
+    keywords: [
+      "venture capital", "vc", "private equity", "investment banking",
+      "investment", "due diligence", "financial modeling",
+      "valuation", "pitch deck", "term sheet", "excel", "deal",
+      "startup", "lp", "gp", "portfolio", "thesis", "cfa",
+    ],
     caseStudy:
       "Evaluate a Series A pitch from a climate-tech startup — recommendation goes to the partner meeting.",
   },
@@ -188,6 +253,11 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "creator",
     values: { content: 3, growth: 2, team: 3, impact: 2, flexibility: 2, salary: 2 },
+    keywords: [
+      "sports", "marketing", "brand", "sponsorship", "campaign",
+      "social media", "fan engagement", "club", "league",
+      "events", "athletic", "merchandising", "partnerships",
+    ],
     caseStudy:
       "Stadium attendance has dropped to 65% — develop a concept that brings the under-30 audience back into the stadium.",
   },
@@ -201,6 +271,12 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "advisor",
     values: { content: 3, growth: 3, team: 2, impact: 2, flexibility: 1, salary: 2 },
+    keywords: [
+      "sports", "data analysis", "python", "r", "sql", "tableau",
+      "power bi", "performance analysis", "biomechanics",
+      "sports science", "gps", "statistics", "physiology",
+      "kinesiology", "match analysis",
+    ],
     caseStudy:
       "A striker loses 12% sprint speed in the second half — analyze GPS and heart-rate data and deliver 2 training recommendations to the coaching staff.",
   },
@@ -214,6 +290,12 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "creator",
     values: { content: 3, growth: 3, team: 2, impact: 1, flexibility: 1, salary: 2 },
+    keywords: [
+      "motorsport", "racing", "automotive", "mechanical engineering",
+      "aerodynamics", "telemetry", "matlab", "cfd", "vehicle dynamics",
+      "f1", "formula", "simulink", "ansys", "powertrain",
+      "thermodynamics", "tire",
+    ],
     caseStudy:
       "In sector 2 the car is 0.3s per lap slower than the rival — analyze the telemetry and design 3 setup options for qualifying.",
   },
@@ -227,6 +309,11 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "creator",
     values: { content: 3, growth: 2, team: 2, impact: 2, flexibility: 3, salary: 1 },
+    keywords: [
+      "podcast", "audio", "production", "audio editing", "media",
+      "broadcast", "ableton", "pro tools", "logic pro", "interview",
+      "storytelling", "narrative", "radio", "journalism",
+    ],
     caseStudy:
       "A true-crime show has stalled at 25k weekly listeners — rework the format, guest strategy, and distribution to grow to 100k.",
   },
@@ -240,6 +327,11 @@ export const JOBS: Job[] = [
     mode: "coordinator",
     output: "enabler",
     values: { content: 3, growth: 2, team: 3, impact: 2, flexibility: 2, salary: 2 },
+    keywords: [
+      "music", "a&r", "label", "artist", "talent", "spotify",
+      "streaming", "music production", "music industry", "agency",
+      "scouting", "music management", "ableton", "logic pro",
+    ],
     caseStudy:
       "From 15 unsigned-artist demos, pick 2 to sign — justify with streaming data, social traction, and musical fit with the label.",
   },
@@ -253,6 +345,12 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "creator",
     values: { content: 3, growth: 2, team: 3, impact: 2, flexibility: 2, salary: 2 },
+    keywords: [
+      "game design", "unity", "unreal", "level design", "narrative",
+      "gameplay", "mobile games", "monetization", "retention",
+      "progression", "playtesting", "game development", "indie",
+      "free to play", "live ops",
+    ],
     caseStudy:
       "A mobile game has 45% D1 retention but only 8% D30 — find the drop-off and design a new progression loop.",
   },
@@ -266,6 +364,12 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "advisor",
     values: { content: 3, growth: 2, team: 1, impact: 3, flexibility: 2, salary: 1 },
+    keywords: [
+      "journalism", "writing", "research", "reporting", "interview",
+      "editor", "publication", "investigation", "news", "media",
+      "freelance", "feature", "long form", "foia", "fact-checking",
+      "political science",
+    ],
     caseStudy:
       "Anonymous sources point to corruption in a city administration — spend 6 weeks investigating and substantiate the allegations with 3 independent sources.",
   },
@@ -279,6 +383,11 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "creator",
     values: { content: 3, growth: 1, team: 2, impact: 3, flexibility: 3, salary: 1 },
+    keywords: [
+      "art history", "museum", "gallery", "exhibition", "art",
+      "fine arts", "humanities", "cultural studies", "archives",
+      "curator", "contemporary art", "art criticism", "philosophy",
+    ],
     caseStudy:
       "Curate an exhibition on women in 70s conceptual art — artist selection, spatial staging, and a companion program for 20 works.",
   },
@@ -292,6 +401,11 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "creator",
     values: { content: 3, growth: 2, team: 2, impact: 3, flexibility: 2, salary: 2 },
+    keywords: [
+      "architecture", "autocad", "revit", "rhino", "sketchup",
+      "urban planning", "urban design", "construction", "real estate",
+      "civil engineering", "bim", "grasshopper", "landscape", "zoning",
+    ],
     caseStudy:
       "An old-town plot with heritage-protection constraints is going to be developed — design 12 residential units that convince both the authorities and the neighbors.",
   },
@@ -305,6 +419,12 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "creator",
     values: { content: 2, growth: 2, team: 2, impact: 1, flexibility: 2, salary: 3 },
+    keywords: [
+      "luxury", "fashion", "brand management", "retail",
+      "merchandising", "lvmh", "kering", "richemont", "premium",
+      "buying", "trend", "showroom", "vogue", "consumer goods",
+      "marketing",
+    ],
     caseStudy:
       "The house wants to launch a Gen Z line without diluting its exclusivity — positioning, price point, channel strategy.",
   },
@@ -318,6 +438,12 @@ export const JOBS: Job[] = [
     mode: "reactive",
     output: "enabler",
     values: { content: 2, growth: 2, team: 3, impact: 2, flexibility: 1, salary: 2 },
+    keywords: [
+      "hospitality", "hotel", "operations", "f&b", "guest",
+      "front office", "general manager", "boutique hotel",
+      "concierge", "revenue management", "rooms division",
+      "ehl", "lausanne", "lobby",
+    ],
     caseStudy:
       "Your boutique hotel sits at 4.1/5 on Booking — breakfast and check-in are the recurring complaints. You have 60 days to reach 4.6.",
   },
@@ -331,6 +457,12 @@ export const JOBS: Job[] = [
     mode: "mixed",
     output: "creator",
     values: { content: 3, growth: 3, team: 3, impact: 2, flexibility: 2, salary: 2 },
+    keywords: [
+      "restaurant", "f&b", "hospitality", "menu", "kitchen",
+      "operations", "concept", "food", "beverage", "culinary",
+      "chef", "sommelier", "barista", "front of house", "p&l",
+      "interior design",
+    ],
     caseStudy:
       "Develop a restaurant concept for a vacant space in Prenzlauer Berg — menu, interior, and a business case with break-even in 18 months.",
   },
@@ -344,6 +476,12 @@ export const JOBS: Job[] = [
     mode: "coordinator",
     output: "enabler",
     values: { content: 3, growth: 2, team: 3, impact: 2, flexibility: 1, salary: 2 },
+    keywords: [
+      "events", "festival", "logistics", "production", "venue",
+      "sponsorship", "live music", "concert", "operations",
+      "vendor management", "ticketing", "stage", "permitting",
+      "event production", "event management",
+    ],
     caseStudy:
       "Run a 3-day music festival for 15,000 attendees — lineup curation, logistics, sponsorship, safety, budget €2.5M.",
   },
@@ -357,6 +495,12 @@ export const JOBS: Job[] = [
     mode: "coordinator",
     output: "enabler",
     values: { content: 2, growth: 2, team: 3, impact: 3, flexibility: 2, salary: 1 },
+    keywords: [
+      "ngo", "non-profit", "nonprofit", "program management",
+      "international development", "fieldwork", "humanitarian",
+      "social impact", "global health", "monitoring and evaluation",
+      "m&e", "grant writing", "unicef", "un", "development studies",
+    ],
     caseStudy:
       "An education program is reaching only 40% of the planned 2,000 children in Tanzania — diagnose on the ground and build a turnaround plan.",
   },
@@ -370,6 +514,12 @@ export const JOBS: Job[] = [
     mode: "coordinator",
     output: "enabler",
     values: { content: 2, growth: 3, team: 2, impact: 3, flexibility: 2, salary: 2 },
+    keywords: [
+      "climate", "sustainability", "energy", "cleantech",
+      "business development", "sales", "esg", "carbon", "renewable",
+      "b2b", "industrial", "decarbonization", "net zero",
+      "environmental science", "engineering",
+    ],
     caseStudy:
       "Sell a novel CO2 measurement technology to the steel industry — identify 3 pilot customers and close at least one deal in Q1.",
   },
@@ -383,6 +533,12 @@ export const JOBS: Job[] = [
     mode: "deep",
     output: "advisor",
     values: { content: 3, growth: 2, team: 2, impact: 3, flexibility: 1, salary: 2 },
+    keywords: [
+      "clinical research", "pharma", "biotech", "clinical trial",
+      "gcp", "ich", "regulatory", "fda", "ema", "biology",
+      "life sciences", "biomedical", "medicine", "nursing", "crf",
+      "edc", "monitoring",
+    ],
     caseStudy:
       "Coordinate a Phase II study for a diabetes drug — 12 clinics, 200 patients, recruitment in 6 months.",
   },
@@ -396,6 +552,12 @@ export const JOBS: Job[] = [
     mode: "coordinator",
     output: "creator",
     values: { content: 3, growth: 2, team: 2, impact: 2, flexibility: 2, salary: 3 },
+    keywords: [
+      "creative", "advertising agency", "advertising", "brand",
+      "campaign", "art direction", "copywriting", "concept",
+      "art director", "adobe", "photoshop", "illustrator",
+      "indesign", "after effects", "graphic design", "cannes lions",
+    ],
     caseStudy:
       "An automotive client is launching its first EV — develop the creative lead concept across campaign, live event, and digital activation.",
   },
@@ -409,14 +571,71 @@ export const JOBS: Job[] = [
     mode: "reactive",
     output: "enabler",
     values: { content: 2, growth: 2, team: 3, impact: 2, flexibility: 1, salary: 3 },
+    keywords: [
+      "sports", "agent", "negotiation", "contract", "athlete",
+      "agency", "talent management", "representation", "endorsement",
+      "scouting", "sports law", "law school", "jd", "client",
+    ],
     caseStudy:
       "A 19-year-old rising star is about to sign their first pro contract — negotiate terms, evaluate 3 club options, and plan the next 4 years.",
   },
 ];
 
+function buildCvBlob(cv: ParsedCV): string {
+  const parts: string[] = [];
+  if (cv.education) parts.push(cv.education);
+  for (const e of cv.experience ?? []) parts.push(e);
+  for (const s of cv.skills ?? []) parts.push(s);
+  for (const l of cv.languages ?? []) parts.push(l);
+  return parts.join(" \n ").toLowerCase();
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function blobMatchesKeyword(blob: string, keyword: string): boolean {
+  const k = keyword.toLowerCase().trim();
+  if (!k) return false;
+  // Match keyword surrounded by start/end of string or non-alphanumeric chars
+  // so "vc" doesn't match "device" and "ml" doesn't match "html".
+  const re = new RegExp(`(^|[^a-z0-9])${escapeRegex(k)}($|[^a-z0-9])`, "i");
+  return re.test(blob);
+}
+
+function scoreCvFit(
+  job: Job,
+  cvBlob: string,
+): { score: number; matched: string[] } {
+  const matched: string[] = [];
+  for (const kw of job.keywords) {
+    if (blobMatchesKeyword(cvBlob, kw)) matched.push(kw);
+  }
+  // 4 points per matched keyword, capped at 30. ~7-8 hits = max.
+  const score = Math.min(30, matched.length * 4);
+  return { score, matched };
+}
+
+function formatCvReason(matched: string[]): string {
+  // Title-case keywords and pick the most distinctive (longest) up to 3.
+  const ranked = [...matched]
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 3)
+    .map((k) =>
+      k
+        .split(" ")
+        .map((w) => (w.length > 2 ? w[0].toUpperCase() + w.slice(1) : w))
+        .join(" "),
+    );
+  if (ranked.length === 1) return `Your ${ranked[0]} background fits`;
+  if (ranked.length === 2) return `Your ${ranked[0]} and ${ranked[1]} background fits`;
+  return `Your background in ${ranked[0]}, ${ranked[1]}, and ${ranked[2]} aligns`;
+}
+
 export function scoreJob(
   job: Job,
   answers: Answers,
+  cv?: ParsedCV | null,
 ): { score: number; reasons: string[] } {
   const reasons: string[] = [];
   let score = 0;
@@ -473,10 +692,25 @@ export function scoreJob(
   }
   score += (valueSum / 18) * 10;
 
+  // CV fit (max 30) — only when a CV is provided
+  if (cv) {
+    const blob = buildCvBlob(cv);
+    if (blob.length > 0) {
+      const { score: cvScore, matched } = scoreCvFit(job, blob);
+      score += cvScore;
+      if (matched.length > 0) {
+        reasons.push(formatCvReason(matched));
+      }
+    }
+  }
+
   return { score: Math.round(score), reasons };
 }
 
-export function getMatches(answers: Answers): ScoredJob[] {
+export function getMatches(
+  answers: Answers,
+  cv?: ParsedCV | null,
+): ScoredJob[] {
   const countByOpenness: Record<string, number> = {
     precise: 3,
     directional: 4,
@@ -485,13 +719,15 @@ export function getMatches(answers: Answers): ScoredJob[] {
   const count = countByOpenness[answers.openness ?? ""] ?? 4;
 
   const scored = JOBS.map((job) => {
-    const { score, reasons } = scoreJob(job, answers);
+    const { score, reasons } = scoreJob(job, answers, cv);
     return { job, score, reasons };
   }).sort((a, b) => b.score - a.score);
 
   const top = scored.slice(0, count);
   const topScore = top[0]?.score ?? 0;
-  const denom = Math.max(topScore, 80);
+  // Denominator floor scales with whether CV is present (max possible
+  // questionnaire = 108, with CV = 138). Keeps percentages comparable.
+  const denom = Math.max(topScore, cv ? 100 : 80);
 
   return top.map(({ job, score, reasons }) => ({
     ...job,

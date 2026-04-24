@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getMatches } from "@/lib/questionnaire/matching";
+import { getMatches, type ParsedCV } from "@/lib/questionnaire/matching";
 import type { Answers } from "@/lib/questionnaire/questions";
 import { resetQuestionnaire } from "../questionnaire/actions";
 
@@ -15,14 +15,15 @@ export default async function ResultsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("questionnaire_answers, completed_at")
+    .select("questionnaire_answers, completed_at, cv_parsed")
     .eq("user_id", user.id)
     .single();
 
   if (!profile?.completed_at) redirect("/questionnaire");
 
   const answers = (profile.questionnaire_answers ?? {}) as Answers;
-  const matches = getMatches(answers);
+  const cv = (profile.cv_parsed ?? null) as ParsedCV | null;
+  const matches = getMatches(answers, cv);
   const hasMatches = matches.length > 0 && matches[0].score > 0;
   const topJobId = matches[0]?.id;
 
