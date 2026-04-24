@@ -234,7 +234,7 @@ insert into public.careers (id, title, slug, description, one_liner, day_in_the_
 -- Case Studies
 insert into public.case_studies (id, career_id, company_id, title, brief, rubric, time_minutes, difficulty, skills_tested, deliverable_format) values
 (
-  'cs-11111111-1111-1111-1111-111111111111',
+  'c5111111-1111-1111-1111-111111111111',
   '11111111-1111-1111-1111-111111111111',
   'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   'Redesign the Onboarding Flow',
@@ -270,7 +270,7 @@ Be specific and data-driven. Show your product thinking.',
   'text'
 ),
 (
-  'cs-22222222-2222-2222-2222-222222222222',
+  'c5222222-2222-2222-2222-222222222222',
   '22222222-2222-2222-2222-222222222222',
   'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   'Design a Team Analytics Dashboard',
@@ -290,7 +290,7 @@ Describe your design decisions, layout choices, and how you''d handle different 
   'text'
 ),
 (
-  'cs-33333333-3333-3333-3333-333333333333',
+  'c5333333-3333-3333-3333-333333333333',
   '33333333-3333-3333-3333-333333333333',
   'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   'Customer Churn Analysis',
