@@ -21,26 +21,13 @@ export async function signupStudent(formData: FormData): Promise<SignupResult> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: name } },
+    options: { data: { full_name: name, role: "student" } },
   });
   if (error) return { ok: false, error: error.message };
 
-  const user = data.user;
-  if (!user) {
+  if (!data.session) {
     return { ok: false, error: "Sign-up succeeded but no user was returned. Check your email if confirmation is required." };
   }
-
-  const { error: userErr } = await supabase.from("users").insert({
-    id: user.id,
-    email: user.email!,
-    name: name || null,
-    role: "student",
-  });
-  if (userErr && !userErr.message.includes("duplicate key")) {
-    return { ok: false, error: userErr.message };
-  }
-
-  await supabase.from("profiles").insert({ user_id: user.id });
 
   return { ok: true, redirect: "/upload-cv" };
 }
@@ -61,31 +48,19 @@ export async function signupCompany(formData: FormData): Promise<SignupResult> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: companyName } },
+    options: {
+      data: {
+        full_name: companyName,
+        company_name: companyName,
+        role: "company",
+      },
+    },
   });
   if (error) return { ok: false, error: error.message };
 
-  const user = data.user;
-  if (!user) {
+  if (!data.session) {
     return { ok: false, error: "Sign-up succeeded but no user was returned. Check your email if confirmation is required." };
   }
-
-  const { error: userErr } = await supabase.from("users").insert({
-    id: user.id,
-    email: user.email!,
-    name: companyName,
-    role: "company",
-  });
-  if (userErr && !userErr.message.includes("duplicate key")) {
-    return { ok: false, error: userErr.message };
-  }
-
-  const { error: companyErr } = await supabase.from("companies").insert({
-    user_id: user.id,
-    name: companyName,
-    contact_email: user.email!,
-  });
-  if (companyErr) return { ok: false, error: companyErr.message };
 
   return { ok: true, redirect: "/portal" };
 }
