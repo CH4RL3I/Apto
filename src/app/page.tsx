@@ -31,6 +31,8 @@ import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
 
+export const dynamic = "force-dynamic";
+
 const essence = [
   {
     icon: Compass,
