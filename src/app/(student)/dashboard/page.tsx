@@ -18,6 +18,7 @@ import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
 import { StudentSidebar } from "@/components/StudentSidebar";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
+import { InvitationActions } from "./InvitationActions";
 
 type StatusVariant = "mist" | "sage" | "sageSolid" | "coral" | "coralSolid";
 const statusVariant: Record<string, StatusVariant> = {
@@ -332,8 +333,10 @@ export default async function DashboardPage() {
                         (company?.logo_url as string | undefined) ??
                         localCs?.logoUrl ??
                         (submissionCaseStudyId ? `/company-logos/${submissionCaseStudyId}.png` : null);
+                      const status = inv.status as string;
+                      const invitationId = inv.id as string;
                       return (
-                        <article key={inv.id as string} className="rounded-[16px] border border-sage bg-pale-sage p-5 shadow-1">
+                        <article key={invitationId} className="rounded-[16px] border border-sage bg-pale-sage p-5 shadow-1">
                           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <div className="flex items-start gap-3">
                               {logoUrl && (
@@ -360,9 +363,16 @@ export default async function DashboardPage() {
                                 </p>
                               </div>
                             </div>
-                            <Pill variant="sage" size="md">
-                              <span className="capitalize">{inv.status as string}</span>
-                            </Pill>
+                            {status === "pending" ? (
+                              <InvitationActions invitationId={invitationId} />
+                            ) : (
+                              <Pill
+                                variant={status === "accepted" ? "sageSolid" : "mist"}
+                                size="md"
+                              >
+                                <span className="capitalize">{status}</span>
+                              </Pill>
+                            )}
                           </div>
                         </article>
                       );
