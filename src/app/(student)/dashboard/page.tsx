@@ -92,15 +92,18 @@ export default async function DashboardPage() {
     redirect(profile?.cv_url ? "/questionnaire" : "/upload-cv");
   }
 
+  // submissions.case_study_id has no FK to case_studies (slug ids), so PostgREST
+  // can't embed those joins. Fetch flat, then attach case-study + company
+  // metadata from the in-app CASE_STUDIES array.
   const { data: submissions } = await supabase
     .from("submissions")
-    .select("*, case_study:case_studies(*, company:companies(*))")
+    .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   const { data: invitations } = await supabase
     .from("invitations")
-    .select("*, company:companies(*), submission:submissions(*, case_study:case_studies(*))")
+    .select("*, company:companies(*), submission:submissions(*)")
     .eq("user_id", user.id)
     .order("sent_at", { ascending: false });
 
@@ -136,8 +139,17 @@ export default async function DashboardPage() {
     ["scored", "reviewed"].includes(sub.status as string),
   ).length;
 
-  const localCaseStudyTitles = new Map<string, string>();
-  for (const cs of CASE_STUDIES) localCaseStudyTitles.set(cs.id, cs.title);
+  const localCaseStudies = new Map<
+    string,
+    { title: string; companyName: string | null; logoUrl: string }
+  >();
+  for (const cs of CASE_STUDIES) {
+    localCaseStudies.set(cs.id, {
+      title: cs.title,
+      companyName: cs.companyName,
+      logoUrl: cs.logoUrl,
+    });
+  }
 
   const progressCards = [
     {
@@ -313,14 +325,12 @@ export default async function DashboardPage() {
                     {invitationRows.map((inv: Record<string, unknown>) => {
                       const company = inv.company as Record<string, unknown> | null;
                       const submission = inv.submission as Record<string, unknown> | null;
-                      const caseStudy = submission?.case_study as Record<string, unknown> | null;
                       const submissionCaseStudyId = submission?.case_study_id as string | undefined;
-                      const caseStudyTitle =
-                        (caseStudy?.title as string | undefined) ??
-                        (submissionCaseStudyId ? localCaseStudyTitles.get(submissionCaseStudyId) : undefined) ??
-                        "Case study";
+                      const localCs = submissionCaseStudyId ? localCaseStudies.get(submissionCaseStudyId) : undefined;
+                      const caseStudyTitle = localCs?.title ?? "Case study";
                       const logoUrl =
                         (company?.logo_url as string | undefined) ??
+                        localCs?.logoUrl ??
                         (submissionCaseStudyId ? `/company-logos/${submissionCaseStudyId}.png` : null);
                       return (
                         <article key={inv.id as string} className="rounded-[16px] border border-sage bg-pale-sage p-5 shadow-1">
@@ -400,17 +410,13 @@ export default async function DashboardPage() {
                 ) : (
                   <div className="grid gap-3">
                     {submissionRows.map((sub: Record<string, unknown>) => {
-                      const cs = sub.case_study as Record<string, unknown> | null;
-                      const company = cs?.company as Record<string, unknown> | null;
                       const status = sub.status as string;
                       const caseStudyId = sub.case_study_id as string | undefined;
-                      const caseStudyTitle =
-                        (cs?.title as string | undefined) ??
-                        (caseStudyId ? localCaseStudyTitles.get(caseStudyId) : undefined) ??
-                        "Case study";
-                      const companyName = (company?.name as string | undefined) ?? "Case study";
+                      const localCs = caseStudyId ? localCaseStudies.get(caseStudyId) : undefined;
+                      const caseStudyTitle = localCs?.title ?? "Case study";
+                      const companyName = localCs?.companyName ?? "Case study";
                       const logoUrl =
-                        (company?.logo_url as string | undefined) ??
+                        localCs?.logoUrl ??
                         (caseStudyId ? `/company-logos/${caseStudyId}.png` : null);
                       return (
                         <article key={sub.id as string} className="rounded-[16px] border border-sage-mist-2 bg-chalk p-5 shadow-1 transition-shadow hover:shadow-2">
