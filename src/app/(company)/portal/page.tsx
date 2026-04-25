@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -169,35 +170,63 @@ export default function CompanyPortalPage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <div className="eyebrow mb-2">Hiring portal</div>
-          <h1 className="text-3xl font-bold text-charcoal tracking-tight">Candidate submissions</h1>
-          <p className="text-charcoal-2 mt-1">Review and invite top performers.</p>
+        <div className="mb-8 flex items-start gap-4">
+          {typeof company?.logo_url === "string" && company.logo_url && (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-chalk shadow-1">
+              <Image
+                src={company.logo_url as string}
+                alt={`${(company?.name as string) ?? "Company"} logo`}
+                width={64}
+                height={64}
+                className="object-contain"
+              />
+            </div>
+          )}
+          <div>
+            <div className="eyebrow mb-2">Hiring portal</div>
+            <h1 className="text-3xl font-bold text-charcoal tracking-tight">
+              {(company?.name as string) ?? "Candidate submissions"}
+            </h1>
+            <p className="text-charcoal-2 mt-1">Review and invite top performers.</p>
+          </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          <div className="bg-chalk rounded-[14px] shadow-1 p-5">
-            <div className="text-3xl font-bold text-charcoal stat-num">{submissions.length}</div>
-            <div className="eyebrow mt-1">Total submissions</div>
-          </div>
-          <div className="bg-chalk rounded-[14px] shadow-1 p-5">
-            <div className="text-3xl font-bold text-charcoal stat-num">
-              {submissions.filter((s) => (s.score || 0) >= 80).length}
+        {(() => {
+          const scoredSubs = submissions.filter((s) => typeof s.score === "number");
+          const avgScore = scoredSubs.length
+            ? Math.round(
+                scoredSubs.reduce((sum, s) => sum + (s.score ?? 0), 0) / scoredSubs.length,
+              )
+            : 0;
+          const bestScore = scoredSubs.length
+            ? Math.max(...scoredSubs.map((s) => s.score ?? 0))
+            : 0;
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+              <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+                <div className="text-3xl font-bold text-charcoal stat-num">{submissions.length}</div>
+                <div className="eyebrow mt-1">Submissions</div>
+              </div>
+              <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+                <div className="text-3xl font-bold text-charcoal stat-num">
+                  {scoredSubs.length ? `${avgScore}` : "—"}
+                </div>
+                <div className="eyebrow mt-1">Average score</div>
+              </div>
+              <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+                <div className="text-3xl font-bold text-sage stat-num">
+                  {scoredSubs.length ? `${bestScore}` : "—"}
+                </div>
+                <div className="eyebrow mt-1">Best score</div>
+              </div>
+              <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+                <div className="text-3xl font-bold text-coral stat-num">{invitedIds.size}</div>
+                <div className="eyebrow mt-1">Invites sent</div>
+              </div>
             </div>
-            <div className="eyebrow mt-1">Score 80+</div>
-          </div>
-          <div className="bg-chalk rounded-[14px] shadow-1 p-5">
-            <div className="text-3xl font-bold text-charcoal stat-num">
-              {submissions.filter((s) => s.cv_snapshot_url).length}
-            </div>
-            <div className="eyebrow mt-1">With CV</div>
-          </div>
-          <div className="bg-chalk rounded-[14px] shadow-1 p-5">
-            <div className="text-3xl font-bold text-sage stat-num">{invitedIds.size}</div>
-            <div className="eyebrow mt-1">Invites sent</div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Status filter row */}
         <div className="flex flex-wrap items-center gap-2 mb-3">

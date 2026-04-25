@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Check, FileText } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
@@ -103,17 +104,28 @@ export default async function CandidateDetailPage({
       <div className="max-w-4xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-start justify-between mb-8 gap-4">
-          <div>
-            <div className="eyebrow mb-1">Candidate</div>
-            <h1 className="text-3xl font-bold text-charcoal tracking-tight">
-              {(studentUser?.name as string) || "Anonymous candidate"}
-            </h1>
-            <p className="text-charcoal-2 mt-1">{studentUser?.email as string}</p>
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <Pill variant="mist" size="md">{cs.title}</Pill>
-              {cs.career && (
-                <Pill variant="sageSolid" size="md">{cs.career.title}</Pill>
-              )}
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[12px] bg-chalk shadow-1">
+              <Image
+                src={`/company-logos/${cs.id}.png`}
+                alt={`${cs.title} logo`}
+                width={56}
+                height={56}
+                className="object-contain"
+              />
+            </div>
+            <div>
+              <div className="eyebrow mb-1">Candidate</div>
+              <h1 className="text-3xl font-bold text-charcoal tracking-tight">
+                {(studentUser?.name as string) || "Anonymous candidate"}
+              </h1>
+              <p className="text-charcoal-2 mt-1">{studentUser?.email as string}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <Pill variant="mist" size="md">{cs.title}</Pill>
+                {cs.career && (
+                  <Pill variant="sageSolid" size="md">{cs.career.title}</Pill>
+                )}
+              </div>
             </div>
           </div>
 

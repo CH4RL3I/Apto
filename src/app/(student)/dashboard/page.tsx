@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Bell,
   Bookmark,
@@ -330,20 +331,36 @@ export default async function DashboardPage() {
                         (caseStudy?.title as string | undefined) ??
                         (submissionCaseStudyId ? localCaseStudyTitles.get(submissionCaseStudyId) : undefined) ??
                         "Case study";
+                      const logoUrl =
+                        (company?.logo_url as string | undefined) ??
+                        (submissionCaseStudyId ? `/company-logos/${submissionCaseStudyId}.png` : null);
                       return (
                         <article key={inv.id as string} className="rounded-[16px] border border-sage bg-pale-sage p-5 shadow-1">
                           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                            <div>
-                              <div className="eyebrow mb-2">Match made</div>
-                              <h3 className="text-lg font-bold tracking-tight text-charcoal">
-                                {(company?.name as string) ?? "A company"} wants to interview you.
-                              </h3>
-                              {typeof inv.message === "string" && inv.message && (
-                                <p className="mt-2 text-sm leading-relaxed text-charcoal-2">{inv.message}</p>
+                            <div className="flex items-start gap-3">
+                              {logoUrl && (
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-chalk shadow-1">
+                                  <Image
+                                    src={logoUrl}
+                                    alt={`${(company?.name as string) ?? "Company"} logo`}
+                                    width={48}
+                                    height={48}
+                                    className="object-contain"
+                                  />
+                                </div>
                               )}
-                              <p className="mt-3 text-xs text-charcoal-2">
-                                Based on your submission to {caseStudyTitle}.
-                              </p>
+                              <div>
+                                <div className="eyebrow mb-2">Match made</div>
+                                <h3 className="text-lg font-bold tracking-tight text-charcoal">
+                                  {(company?.name as string) ?? "A company"} wants to interview you.
+                                </h3>
+                                {typeof inv.message === "string" && inv.message && (
+                                  <p className="mt-2 text-sm leading-relaxed text-charcoal-2">{inv.message}</p>
+                                )}
+                                <p className="mt-3 text-xs text-charcoal-2">
+                                  Based on your submission to {caseStudyTitle}.
+                                </p>
+                              </div>
                             </div>
                             <Pill variant="sage" size="md">
                               <span className="capitalize">{inv.status as string}</span>
@@ -404,19 +421,35 @@ export default async function DashboardPage() {
                         (caseStudyId ? localCaseStudyTitles.get(caseStudyId) : undefined) ??
                         "Case study";
                       const companyName = (company?.name as string | undefined) ?? "Case study";
+                      const logoUrl =
+                        (company?.logo_url as string | undefined) ??
+                        (caseStudyId ? `/company-logos/${caseStudyId}.png` : null);
                       return (
                         <article key={sub.id as string} className="rounded-[16px] border border-sage-mist-2 bg-chalk p-5 shadow-1 transition-shadow hover:shadow-2">
                           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                            <div>
-                              <div className="eyebrow mb-1">{companyName}</div>
-                              <h3 className="font-bold tracking-tight text-charcoal">{caseStudyTitle}</h3>
-                              <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <Pill variant={statusVariant[status] ?? "mist"} size="sm">
-                                  <span className="capitalize">{formatStatus(status)}</span>
-                                </Pill>
-                                {typeof sub.score === "number" && (
-                                  <span className="text-sm font-bold text-sage stat-num">{sub.score as number}/100</span>
-                                )}
+                            <div className="flex items-start gap-3">
+                              {logoUrl && (
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-pale-sage shadow-1">
+                                  <Image
+                                    src={logoUrl}
+                                    alt={`${companyName} logo`}
+                                    width={48}
+                                    height={48}
+                                    className="object-contain"
+                                  />
+                                </div>
+                              )}
+                              <div>
+                                <div className="eyebrow mb-1">{companyName}</div>
+                                <h3 className="font-bold tracking-tight text-charcoal">{caseStudyTitle}</h3>
+                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                  <Pill variant={statusVariant[status] ?? "mist"} size="sm">
+                                    <span className="capitalize">{formatStatus(status)}</span>
+                                  </Pill>
+                                  {typeof sub.score === "number" && (
+                                    <span className="text-sm font-bold text-sage stat-num">{sub.score as number}/100</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             {sub.status === "in_progress" ? (
