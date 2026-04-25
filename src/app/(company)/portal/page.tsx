@@ -35,11 +35,25 @@ export default function CompanyPortalPage() {
   const [hasCV, setHasCV] = useState(false);
   const [topOnly, setTopOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"score" | "date">("score");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "new" | "shortlisted" | "rejected" | "reviewed"
+  >("all");
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
+
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (userRow?.role !== "company") {
+        router.push("/dashboard");
+        return;
+      }
 
       const { data: comp } = await supabase
         .from("companies")
@@ -68,7 +82,7 @@ export default function CompanyPortalPage() {
           .from("submissions")
           .select("*, users(*)")
           .in("case_study_id", csIds)
-          .in("status", ["scored", "submitted", "reviewed"])
+          .in("status", ["scored", "submitted", "reviewed", "shortlisted", "rejected"])
           .order("score", { ascending: false, nullsFirst: false });
 
         setSubmissions(
@@ -111,6 +125,11 @@ export default function CompanyPortalPage() {
   }
 
   const filtered = submissions
+    .filter((s) => {
+      if (statusFilter === "all") return s.status !== "rejected";
+      if (statusFilter === "new") return s.status === "submitted" || s.status === "scored";
+      return s.status === statusFilter;
+    })
     .filter((s) => (s.score || 0) >= minScore)
     .filter((s) => !hasCV || !!s.cv_snapshot_url)
     .filter((s) => {
@@ -136,7 +155,13 @@ export default function CompanyPortalPage() {
       <nav className="border-b border-sage-mist-2 bg-chalk">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" aria-label="Apto home" className="inline-flex items-center"><Logo height={28} priority /></Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-5">
+            <Link
+              href="/portal/case-studies"
+              className="text-sm font-medium text-charcoal-2 hover:text-charcoal transition-colors"
+            >
+              Case studies
+            </Link>
             <Pill variant="coral" size="sm">Company</Pill>
             <span className="text-sm text-charcoal-2">{company?.name as string}</span>
           </div>
@@ -172,6 +197,32 @@ export default function CompanyPortalPage() {
             <div className="text-3xl font-bold text-sage stat-num">{invitedIds.size}</div>
             <div className="eyebrow mt-1">Invites sent</div>
           </div>
+        </div>
+
+        {/* Status filter row */}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {(
+            [
+              { key: "all", label: "All" },
+              { key: "new", label: "New" },
+              { key: "shortlisted", label: "Shortlisted" },
+              { key: "reviewed", label: "Reviewed" },
+              { key: "rejected", label: "Rejected" },
+            ] as const
+          ).map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setStatusFilter(f.key)}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                statusFilter === f.key
+                  ? "bg-sage text-chalk"
+                  : "bg-chalk text-charcoal-2 border border-sage-mist-2 hover:bg-pale-sage"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
 
         {/* Filters */}

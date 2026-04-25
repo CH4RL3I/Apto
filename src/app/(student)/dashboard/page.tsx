@@ -24,12 +24,14 @@ import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
 
-type StatusVariant = "mist" | "sage" | "sageSolid" | "coralSolid";
+type StatusVariant = "mist" | "sage" | "sageSolid" | "coral" | "coralSolid";
 const statusVariant: Record<string, StatusVariant> = {
   in_progress: "mist",
   submitted: "sage",
   scored: "sageSolid",
-  reviewed: "coralSolid",
+  reviewed: "coral",
+  shortlisted: "sageSolid",
+  rejected: "coralSolid",
 };
 
 const navigationItems = [

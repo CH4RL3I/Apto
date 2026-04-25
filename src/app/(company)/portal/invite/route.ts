@@ -52,6 +52,16 @@ export async function POST(request: Request) {
     return respond(request, wantsJson, 401, "Unauthorized");
   }
 
+  const { data: userRow } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (userRow?.role !== "company") {
+    return respond(request, wantsJson, 403, "Company account required");
+  }
+
   const { data: company } = await supabase
     .from("companies")
     .select("id")

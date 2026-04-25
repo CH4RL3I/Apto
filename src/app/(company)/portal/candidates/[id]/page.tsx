@@ -5,6 +5,7 @@ import { Check, FileText } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { Button } from "@/components/ui/Button";
+import { ReviewControls } from "./ReviewControls";
 
 export default async function CandidateDetailPage({
   params,
@@ -16,6 +17,14 @@ export default async function CandidateDetailPage({
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  const { data: userRow } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (userRow?.role !== "company") redirect("/dashboard");
 
   const { data: company } = await supabase
     .from("companies")
@@ -184,6 +193,12 @@ export default async function CandidateDetailPage({
 
           {/* Sidebar */}
           <div className="space-y-4">
+            <ReviewControls
+              submissionId={sub.id as string}
+              initialNotes={(sub.reviewer_notes as string) ?? ""}
+              initialStatus={sub.status as string}
+            />
+
             {/* Invite action */}
             <div className="bg-chalk rounded-[14px] shadow-1 p-5">
               {invited ? (
