@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Building2 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
-import { signupCompany } from "../actions";
+import { signupStudent } from "./actions";
 
-export default function CompanySignupPage() {
+export default function StudentSignupPage() {
   const router = useRouter();
-  const [companyName, setCompanyName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,10 +21,10 @@ export default function CompanySignupPage() {
     setLoading(true);
     setError(null);
     const fd = new FormData();
-    fd.set("companyName", companyName);
+    fd.set("name", name);
     fd.set("email", email);
     fd.set("password", password);
-    const res = await signupCompany(fd);
+    const res = await signupStudent(fd);
     setLoading(false);
     if (!res.ok) {
       setError(res.error ?? "Sign-up failed");
@@ -50,19 +49,10 @@ export default function CompanySignupPage() {
           >
             <Logo height={56} priority />
           </Link>
-          <p className="mt-2 text-charcoal-2">
-            Host case studies. Find candidates who can do the work.
-          </p>
+          <p className="mt-2 text-charcoal-2">Create your student account.</p>
         </div>
 
         <div className="bg-chalk rounded-[14px] shadow-2 p-8">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-9 h-9 bg-pale-sage rounded-full flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-sage" strokeWidth={1.75} />
-            </div>
-            <h2 className="text-base font-semibold text-charcoal">Create a company account</h2>
-          </div>
-
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2.5 mb-4">
               {error}
@@ -76,15 +66,15 @@ export default function CompanySignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="companyName" className="block text-sm font-medium text-charcoal mb-1.5">
-                Company name
+              <label htmlFor="name" className="block text-sm font-medium text-charcoal mb-1.5">
+                Full name
               </label>
               <input
-                id="companyName"
+                id="name"
                 type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="ShipFlow"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Alex Müller"
                 required
                 minLength={2}
                 className="w-full px-4 py-2.5 bg-chalk border border-sage-mist-2 rounded-[10px] text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage transition-colors"
@@ -92,14 +82,14 @@ export default function CompanySignupPage() {
             </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-charcoal mb-1.5">
-                Work email
+                Email
               </label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="hiring@yourcompany.com"
+                placeholder="you@university.edu"
                 required
                 className="w-full px-4 py-2.5 bg-chalk border border-sage-mist-2 rounded-[10px] text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-sage/30 focus:border-sage transition-colors"
               />
@@ -126,15 +116,21 @@ export default function CompanySignupPage() {
               size="md"
               className="w-full"
             >
-              {loading ? "Creating account…" : "Create company account"}
+              {loading ? "Creating account…" : "Create account"}
             </Button>
           </form>
         </div>
 
         <p className="text-center text-sm text-charcoal-2 mt-6">
-          Already have a company account?{" "}
-          <Link href="/login/company" className="text-sage font-semibold hover:underline">
+          Already have an account?{" "}
+          <Link href="/login" className="text-sage font-semibold hover:underline">
             Sign in
+          </Link>
+        </p>
+        <p className="text-center text-xs text-charcoal-3 mt-2">
+          Hiring?{" "}
+          <Link href="/signup/company" className="text-sage font-semibold hover:underline">
+            Sign up as a company
           </Link>
         </p>
       </div>

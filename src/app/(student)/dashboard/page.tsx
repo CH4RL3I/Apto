@@ -17,6 +17,7 @@ import {
   Settings,
   Sparkles,
   Target,
+  UserCircle2,
   Users,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -458,18 +459,56 @@ export default async function DashboardPage() {
                 </div>
               </section>
 
-              <section className="relative overflow-hidden rounded-[18px] bg-sage p-5 text-chalk shadow-2">
-                <div className="poster-path opacity-60" />
-                <div className="relative z-10">
-                  <div className="eyebrow mb-3 text-chalk/70">Brand promise</div>
-                  <h2 className="text-2xl font-bold leading-tight tracking-tight">
-                    Learn by doing. Grow by solving.
-                  </h2>
-                  <p className="mt-3 text-sm leading-relaxed text-pale-sage">
-                    Your dashboard now feels like a guided product, not a generic admin panel.
+              <section className="rounded-[18px] border border-sage-mist-2 bg-chalk p-5 shadow-1">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-charcoal">Your profile</h2>
+                  <Link href="/upload-cv" className="focus-ring rounded-lg px-2 py-1 text-xs font-semibold text-sage hover:underline">
+                    Edit
+                  </Link>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sage text-chalk shadow-1">
+                    <UserCircle2 className="h-7 w-7" strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-bold tracking-tight text-charcoal">
+                      {userData?.name ?? "Apto student"}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-sage">Apto student</p>
+                    {typeof userData?.email === "string" && userData.email && (
+                      <p className="mt-0.5 truncate text-[10px] text-charcoal-2">{userData.email}</p>
+                    )}
+                  </div>
+                </div>
+
+                {cvSkills.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {cvSkills.slice(0, 6).map((skill: string) => (
+                      <span key={skill} className="rounded-full bg-pale-sage px-2 py-0.5 text-[10px] font-semibold text-sage-700">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-4 text-[11px] text-charcoal-2">
+                    Upload a CV to surface your skills and sharpen your matches.
                   </p>
-                  <div className="tagline-caps mt-8 text-[10px] leading-6 text-chalk/70">
-                    Explore.<br />Understand.<br /><span className="text-coral">Achieve.</span>
+                )}
+
+                <div className="mt-5 grid grid-cols-3 gap-2 border-t border-sage-mist-2 pt-4 text-center">
+                  <div>
+                    <div className="stat-num text-base text-charcoal">{completedChallenges}</div>
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Done</div>
+                  </div>
+                  <div>
+                    <div className="stat-num text-base text-charcoal">{impactScore}</div>
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Impact</div>
+                  </div>
+                  <div>
+                    <div className="stat-num text-base text-coral">
+                      {averageScore ? `${averageScore}` : "-"}
+                    </div>
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Avg</div>
                   </div>
                 </div>
               </section>

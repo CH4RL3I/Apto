@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
@@ -46,6 +47,22 @@ export default async function CaseStudyBriefPage({
         <div className="mb-6">
           <div className="eyebrow mb-2">Case study</div>
           <h1 className="text-3xl md:text-[34px] font-bold text-charcoal tracking-tight" style={{ textWrap: "balance" }}>{cs.title}</h1>
+          {cs.companyName && (
+            <div className="mt-3 inline-flex items-center gap-2 bg-chalk border border-sage-mist-2 rounded-full pl-1 pr-3 py-1 shadow-1">
+              <span className="w-7 h-7 rounded-full bg-pale-sage overflow-hidden flex items-center justify-center">
+                <Image
+                  src={cs.logoUrl}
+                  alt={`${cs.companyName} logo`}
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+              </span>
+              <span className="text-xs text-charcoal-2">
+                Hosted by <strong className="text-charcoal font-semibold">{cs.companyName}</strong>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Meta */}

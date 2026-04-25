@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import {
   getMatches,
@@ -138,16 +139,32 @@ export default async function ResultsPage() {
                           className="block rounded-[10px] bg-pale-sage hover:bg-chalk-2 px-4 py-3 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-3">
+                            <div className="w-10 h-10 rounded-md bg-chalk shadow-1 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              <Image
+                                src={cs.logoUrl}
+                                alt={`${cs.companyName ?? "Company"} logo`}
+                                width={40}
+                                height={40}
+                                className="object-contain"
+                              />
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div className="text-sm font-semibold text-charcoal">
                                 {cs.title}
                               </div>
-                              <div className="text-xs text-charcoal-2 mt-0.5 capitalize">
-                                {cs.duration} · {cs.estimatedMinutes} min ·{" "}
-                                {cs.skillsTested.slice(0, 3).join(" · ")}
+                              <div className="text-xs text-charcoal-2 mt-0.5">
+                                {cs.companyName && (
+                                  <span className="font-medium text-charcoal">
+                                    {cs.companyName}
+                                  </span>
+                                )}
+                                {cs.companyName && " · "}
+                                <span className="capitalize">
+                                  {cs.duration} · {cs.estimatedMinutes} min
+                                </span>
                               </div>
                             </div>
-                            <span className="text-sage text-sm flex-shrink-0">
+                            <span className="text-sage text-sm flex-shrink-0 self-center">
                               →
                             </span>
                           </div>
