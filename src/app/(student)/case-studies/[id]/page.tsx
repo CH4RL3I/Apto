@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Clock } from "lucide-react";
+import { Clock, Sun } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
+import { daySnapshot } from "@/lib/questionnaire/matching";
 import { Markdown } from "@/lib/markdown";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
@@ -31,6 +32,12 @@ export default async function CaseStudyBriefPage({
       : cs.duration === "long"
       ? "Deep dive"
       : "Mid-form";
+
+  // The seeded body still contains a leading <img> tag from the original
+  // markdown source. We render the company logo separately above, so strip it.
+  const cleanBody = cs.body.replace(/^\s*<img\b[^>]*>\s*\n?/i, "");
+
+  const dayLine = daySnapshot(cs);
 
   return (
     <div className="min-h-screen bg-pale-sage">
@@ -76,7 +83,16 @@ export default async function CaseStudyBriefPage({
 
         {/* Brief (full markdown body) */}
         <div className="bg-chalk rounded-[14px] shadow-1 p-8 mb-6">
-          <Markdown source={cs.body} />
+          <Markdown source={cleanBody} />
+        </div>
+
+        {/* Daily routine */}
+        <div className="bg-chalk rounded-[14px] shadow-1 p-6 mb-4">
+          <h2 className="eyebrow mb-3 flex items-center gap-1.5">
+            <Sun className="w-3.5 h-3.5 text-sage" strokeWidth={1.75} />
+            What a typical day looks like
+          </h2>
+          <p className="text-sm text-charcoal-2 leading-relaxed">{dayLine}</p>
         </div>
 
         {/* Skills tested */}

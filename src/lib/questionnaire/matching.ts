@@ -68,6 +68,34 @@ const OUTPUT_LABELS: Record<Job["output"], string> = {
   advisor: "you enable decisions",
 };
 
+export function daySnapshot(cs: CaseStudy): string {
+  const skills = cs.skillsTested.slice(0, 3);
+  const skillsClause =
+    skills.length === 0
+      ? ""
+      : skills.length === 1
+      ? skills[0].toLowerCase()
+      : `${skills.slice(0, -1).join(", ").toLowerCase()} and ${skills[skills.length - 1].toLowerCase()}`;
+  const handoff = cs.matchesRoles[0];
+
+  const mode = cs.matchesMode ? MODE_LABELS[cs.matchesMode] : null;
+  const output = cs.matchesOutput ? OUTPUT_LABELS[cs.matchesOutput] : null;
+
+  if (mode && output) {
+    return `A typical day blends ${mode} with work where ${output}. Expect to spend real time on ${skillsClause}${
+      handoff ? `, with hand-offs to a ${handoff}` : ""
+    }.`;
+  }
+  if (mode) {
+    return `A typical day centers on ${mode}, with focus on ${skillsClause}${
+      handoff ? ` and frequent collaboration with a ${handoff}` : ""
+    }.`;
+  }
+  return `A typical day on this case revolves around ${skillsClause}${
+    handoff ? `, often alongside a ${handoff}` : ""
+  }.`;
+}
+
 const VALUE_WEIGHTS = [3, 2, 1] as const;
 
 export const JOBS: Job[] = [

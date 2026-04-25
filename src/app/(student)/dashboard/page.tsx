@@ -39,10 +39,10 @@ const statusVariant: Record<string, StatusVariant> = {
 const navigationItems = [
   { label: "Home", href: "/dashboard", icon: HomeIcon, active: true },
   { label: "Discover", href: "/results", icon: Compass },
-  { label: "Challenges", href: "/results", icon: Briefcase },
-  { label: "Companies", href: "/results", icon: Building2 },
-  { label: "Connections", href: "#invitations", icon: Users },
-  { label: "Messages", href: "#invitations", icon: MessageCircle },
+  { label: "Challenges", href: "/challenges", icon: Briefcase },
+  { label: "Companies", href: "/companies", icon: Building2 },
+  { label: "Connections", href: "/dashboard#invitations", icon: Users },
+  { label: "Messages", href: "/dashboard#invitations", icon: MessageCircle },
 ];
 
 const recommendedChallenges = [
@@ -121,6 +121,18 @@ export default async function DashboardPage() {
     .order("sent_at", { ascending: false });
 
   const firstName = userData?.name ? userData.name.split(" ")[0] : "there";
+  const initials = (() => {
+    const name = (userData?.name as string | undefined)?.trim();
+    if (name) {
+      const parts = name.split(/\s+/).filter(Boolean);
+      const first = parts[0]?.[0] ?? "";
+      const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+      const combined = `${first}${last}`.toUpperCase();
+      if (combined) return combined.slice(0, 2);
+    }
+    const email = userData?.email ?? user.email ?? "";
+    return email.slice(0, 2).toUpperCase() || "??";
+  })();
   const submissionRows = submissions ?? [];
   const invitationRows = invitations ?? [];
   const cvSkills = Array.isArray(profile?.cv_skills) ? profile.cv_skills : [];
@@ -231,11 +243,38 @@ export default async function DashboardPage() {
                 <Bell className="h-4 w-4" strokeWidth={1.75} />
                 <span className="sr-only">Notifications</span>
               </button>
-              <form action="/auth/signout" method="post">
-                <button className="focus-ring rounded-[10px] px-3 py-2 text-sm font-semibold text-charcoal-2 transition-colors hover:bg-pale-sage hover:text-charcoal">
-                  Sign out
-                </button>
-              </form>
+              <details className="apto-user-menu group relative">
+                <summary className="focus-ring flex cursor-pointer list-none items-center gap-2 rounded-full border border-sage-mist-2 bg-chalk py-1 pr-3 pl-1 shadow-1 transition-colors hover:bg-pale-sage [&::-webkit-details-marker]:hidden">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-sage text-sm font-bold uppercase tracking-tight text-chalk"
+                  >
+                    {initials}
+                  </span>
+                  <span className="hidden text-sm font-semibold text-charcoal sm:inline">
+                    {firstName}
+                  </span>
+                </summary>
+                <div className="absolute right-0 top-full z-20 mt-2 w-44 rounded-[12px] border border-sage-mist-2 bg-chalk p-1 shadow-2">
+                  <div className="border-b border-sage-mist-2 px-3 py-2">
+                    <div className="text-xs text-charcoal-3">Signed in as</div>
+                    <div className="truncate text-sm font-semibold text-charcoal">
+                      {userData?.email ?? user.email}
+                    </div>
+                  </div>
+                  <Link
+                    href="/upload-cv"
+                    className="block rounded-[8px] px-3 py-2 text-sm font-medium text-charcoal-2 hover:bg-pale-sage hover:text-charcoal"
+                  >
+                    Edit profile
+                  </Link>
+                  <form action="/auth/signout" method="post">
+                    <button className="w-full rounded-[8px] px-3 py-2 text-left text-sm font-medium text-coral-700 hover:bg-coral-100">
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              </details>
             </div>
           </header>
 
