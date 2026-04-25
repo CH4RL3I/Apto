@@ -332,6 +332,12 @@ export default function ExamPage() {
             </ul>
           </div>
 
+          {examError && (
+            <p className="text-sm text-coral-700 bg-coral-100 rounded-lg px-3 py-2 mb-4">
+              {examError}
+            </p>
+          )}
+
           <div className="flex flex-col gap-3">
             <Button
               onClick={() => {
