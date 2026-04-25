@@ -1,40 +1,113 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #6366f1;
-  --color-primary-dark: #4f46e5;
-  --color-primary-light: #818cf8;
-  --color-surface: #f8fafc;
-  --color-surface-dark: #0f172a;
-  --color-card: #ffffff;
-  --color-card-dark: #1e293b;
-  --color-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-pm: #6366f1;
-  --color-ux: #ec4899;
-  --color-data: #14b8a6;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Brand palette */
+  --color-sage:        #4A7C6F;
+  --color-sage-700:    #3C6459;
+  --color-sage-300:    #8FB3A8;
+  --color-pale-sage:   #EEF4F2;
+  --color-sage-mist:   #B6C4BE;
+  --color-sage-mist-2: #D8E0DC;
+  --color-chalk:       #FAFAF7;
+  --color-chalk-2:     #F4F4EF;
+  --color-coral:       #E8735A;
+  --color-coral-700:   #D25E45;
+  --color-coral-100:   #FBE3DC;
+  --color-charcoal:    #2D3330;
+  --color-charcoal-2:  #5A6360;
+  --color-charcoal-3:  #8A928F;
+
+  /* Legacy aliases — preserve existing class names that reference these */
+  --color-primary:       var(--color-sage);
+  --color-primary-dark:  var(--color-sage-700);
+  --color-primary-light: var(--color-sage-300);
+  --color-surface:       var(--color-chalk);
+  --color-surface-dark:  #1F2522;
+  --color-card:          var(--color-pale-sage);
+  --color-card-dark:     var(--color-charcoal);
+  --color-muted:         var(--color-charcoal-2);
+  --color-border:        var(--color-sage-mist-2);
+
+  /* Career-color legend → Sage variants (was indigo / pink / teal) */
+  --color-pm:   var(--color-sage);
+  --color-ux:   var(--color-sage-700);
+  --color-data: var(--color-coral);
+
+  /* Override Tailwind's built-in slate so text-slate-* / bg-slate-* re-route to brand */
+  --color-slate-900: #2D3330;
+  --color-slate-800: #2D3330;
+  --color-slate-700: #5A6360;
+  --color-slate-600: #5A6360;
+  --color-slate-500: #8A928F;
+  --color-slate-400: #B6C4BE;
+  --color-slate-300: #B6C4BE;
+  --color-slate-200: #D8E0DC;
+  --color-slate-100: #EEF4F2;
+  --color-slate-50:  #F4F4EF;
+
+  /* Typography — Poppins via next/font (variable defined in layout.tsx) */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand motion — applies to every Tailwind transition utility */
+  --default-transition-timing-function: cubic-bezier(0.32, 0.72, 0.24, 1);
+  --default-transition-duration: 220ms;
+
+  /* Brand radii / shadows */
+  --radius-card: 14px;
+  --radius-hero: 20px;
+  --shadow-1: 0 1px 2px rgba(45, 51, 48, 0.04), 0 1px 3px rgba(45, 51, 48, 0.06);
+  --shadow-2: 0 2px 4px rgba(45, 51, 48, 0.04), 0 6px 16px rgba(45, 51, 48, 0.06);
+  --shadow-3: 0 8px 24px rgba(45, 51, 48, 0.08), 0 16px 40px rgba(45, 51, 48, 0.06);
 }
 
 body {
   font-family: var(--font-sans);
-  background: var(--color-surface);
-  color: #0f172a;
+  background: var(--color-chalk);
+  color: var(--color-charcoal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Exam mode dark overlay */
-.exam-mode {
-  background: #0f172a;
-  color: #e2e8f0;
+/* Brand utilities */
+.shadow-1 { box-shadow: var(--shadow-1); }
+.shadow-2 { box-shadow: var(--shadow-2); }
+.shadow-3 { box-shadow: var(--shadow-3); }
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-charcoal-2);
 }
 
-/* Slider styling */
+.tagline-caps {
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.stat-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Exam mode — charcoal-based dark, replacing slate-on-navy */
+.exam-mode             { background: #1F2522; color: #EEF4F2; }
+.exam-mode .surface-2  { background: #262C29; }
+.exam-mode .surface-3  { background: #2D3330; }
+.exam-mode .border-dim { border-color: #3A413D; }
+.exam-mode .text-dim   { color: #8FA09A; }
+.exam-mode .text-warn  { color: #E8735A; }
+
+/* Range slider — reskinned in Sage */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   height: 8px;
   border-radius: 9999px;
-  background: #e2e8f0;
+  background: var(--color-sage-mist-2);
   outline: none;
 }
 
@@ -44,39 +117,25 @@ input[type="range"]::-webkit-slider-thumb {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #6366f1;
+  background: var(--color-sage);
   cursor: pointer;
-  border: 3px solid white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 3px solid var(--color-chalk);
+  box-shadow: 0 2px 6px rgba(45, 51, 48, 0.15);
 }
 
-/* Progress bar animation */
+/* Existing animations — retuned to brand "guided" easing */
 .progress-fill {
-  transition: width 0.4s ease;
+  transition: width 0.32s cubic-bezier(0.32, 0.72, 0.24, 1);
 }
 
-/* Score reveal animation */
 @keyframes scoreReveal {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
 }
+.score-reveal { animation: scoreReveal 0.48s cubic-bezier(0.32, 0.72, 0.24, 1); }
 
-.score-reveal {
-  animation: scoreReveal 0.5s ease-out;
-}
-
-/* Fade in */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
+.fade-in { animation: fadeIn 0.32s cubic-bezier(0.32, 0.72, 0.24, 1); }

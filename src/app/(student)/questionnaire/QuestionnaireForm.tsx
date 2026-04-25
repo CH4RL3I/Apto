@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { QUESTIONS, type Answers, type Question } from "@/lib/questionnaire/questions";
 import { submitQuestionnaire } from "./actions";
 import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/Button";
 
 export default function QuestionnaireForm() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -68,20 +70,20 @@ export default function QuestionnaireForm() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-pale-sage flex flex-col">
       {/* Top bar */}
-      <div className="border-b border-border bg-white">
+      <div className="border-b border-sage-mist-2 bg-chalk">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" aria-label="Apto home" className="inline-flex items-center">
             <Logo height={28} priority />
           </Link>
-          <span className="text-sm text-muted">
+          <span className="eyebrow">
             {currentStep + 1} / {QUESTIONS.length}
           </span>
         </div>
-        <div className="h-1 bg-slate-100">
+        <div className="h-1 bg-sage-mist-2">
           <div
-            className="h-full bg-primary progress-fill rounded-r-full"
+            className="h-full bg-sage progress-fill rounded-r-full"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -90,10 +92,10 @@ export default function QuestionnaireForm() {
       {/* Question area */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-lg fade-in" key={currentStep}>
-          <h2 className="text-2xl font-semibold text-slate-900 mb-2">
+          <h2 className="text-[28px] md:text-3xl font-bold text-charcoal mb-2 tracking-tight" style={{ textWrap: "balance" }}>
             {question.title}
           </h2>
-          <p className="text-sm text-muted mb-8">{question.hint}</p>
+          <p className="text-sm text-charcoal-2 mb-8 leading-relaxed">{question.hint}</p>
 
           {question.type === "single" && (
             <div className="space-y-3">
@@ -103,10 +105,10 @@ export default function QuestionnaireForm() {
                   <button
                     key={option.value}
                     onClick={() => handleSingle(option.value)}
-                    className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-sm font-medium ${
+                    className={`w-full text-left px-5 py-4 rounded-[14px] border transition-all text-sm font-medium ${
                       selected
-                        ? "border-primary bg-primary/5 text-primary"
-                        : "border-border bg-white text-slate-700 hover:border-slate-300"
+                        ? "border-sage bg-pale-sage text-sage-700 shadow-1"
+                        : "border-sage-mist-2 bg-chalk text-charcoal hover:border-sage-mist hover:shadow-1"
                     }`}
                   >
                     {option.label}
@@ -128,36 +130,24 @@ export default function QuestionnaireForm() {
                       key={option.value}
                       onClick={() => handleMulti(option.value)}
                       disabled={atMax}
-                      className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-sm font-medium ${
+                      className={`w-full text-left px-5 py-4 rounded-[14px] border transition-all text-sm font-medium ${
                         selected
-                          ? "border-primary bg-primary/5 text-primary"
+                          ? "border-sage bg-pale-sage text-sage-700 shadow-1"
                           : atMax
-                          ? "border-border bg-white text-slate-400 cursor-not-allowed"
-                          : "border-border bg-white text-slate-700 hover:border-slate-300"
+                          ? "border-sage-mist-2 bg-chalk text-charcoal-3 cursor-not-allowed"
+                          : "border-sage-mist-2 bg-chalk text-charcoal hover:border-sage-mist hover:shadow-1"
                       }`}
                     >
                       <span className="flex items-center gap-3">
                         <span
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                          className={`w-5 h-5 rounded-[6px] border-2 flex items-center justify-center flex-shrink-0 ${
                             selected
-                              ? "border-primary bg-primary"
-                              : "border-slate-300"
+                              ? "border-sage bg-sage"
+                              : "border-sage-mist"
                           }`}
                         >
                           {selected && (
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
+                            <Check className="w-3 h-3 text-chalk" strokeWidth={3} />
                           )}
                         </span>
                         {option.label}
@@ -166,7 +156,7 @@ export default function QuestionnaireForm() {
                   );
                 })}
               </div>
-              <p className="text-sm text-muted mt-4 text-center">
+              <p className="text-sm text-charcoal-2 mt-4 text-center">
                 {((answers[question.id] as string[] | undefined) ?? []).length}{" "}
                 of max. {question.max} selected
               </p>
@@ -186,20 +176,20 @@ export default function QuestionnaireForm() {
                       key={option.value}
                       onClick={() => handleRank(option.value)}
                       disabled={atMax}
-                      className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-sm font-medium ${
+                      className={`w-full text-left px-5 py-4 rounded-[14px] border transition-all text-sm font-medium ${
                         rank !== null
-                          ? "border-primary bg-primary/5 text-primary"
+                          ? "border-sage bg-pale-sage text-sage-700 shadow-1"
                           : atMax
-                          ? "border-border bg-white text-slate-400 cursor-not-allowed"
-                          : "border-border bg-white text-slate-700 hover:border-slate-300"
+                          ? "border-sage-mist-2 bg-chalk text-charcoal-3 cursor-not-allowed"
+                          : "border-sage-mist-2 bg-chalk text-charcoal hover:border-sage-mist hover:shadow-1"
                       }`}
                     >
                       <span className="flex items-center gap-3">
                         <span
                           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 text-xs font-semibold ${
                             rank !== null
-                              ? "border-primary bg-primary text-white"
-                              : "border-slate-300 text-transparent"
+                              ? "border-sage bg-sage text-chalk"
+                              : "border-sage-mist text-transparent"
                           }`}
                         >
                           {rank ?? ""}
@@ -210,7 +200,7 @@ export default function QuestionnaireForm() {
                   );
                 })}
               </div>
-              <p className="text-sm text-muted mt-4 text-center">
+              <p className="text-sm text-charcoal-2 mt-4 text-center">
                 {((answers.values as string[] | undefined) ?? []).length} of{" "}
                 {question.max} ranked
               </p>
@@ -220,23 +210,24 @@ export default function QuestionnaireForm() {
       </div>
 
       {/* Bottom navigation */}
-      <div className="border-t border-border bg-white">
-        <div className="max-w-lg mx-auto px-6 py-4 flex justify-between">
+      <div className="border-t border-sage-mist-2 bg-chalk">
+        <div className="max-w-lg mx-auto px-6 py-4 flex justify-between items-center">
           <button
             onClick={handleBack}
             disabled={currentStep === 0 || saving}
-            className="px-6 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-30 transition-colors"
+            className="px-4 py-2.5 text-sm font-medium text-charcoal-2 hover:text-charcoal disabled:opacity-30 transition-colors"
           >
             &larr; Back
           </button>
 
-          <button
+          <Button
             onClick={isLast ? handleSubmit : handleNext}
             disabled={!canProceed || saving}
-            className="px-8 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark disabled:opacity-50 transition-colors"
+            variant="primary"
+            size="md"
           >
-            {isLast ? (saving ? "Saving…" : "Show my matches") : "Next →"}
-          </button>
+            {isLast ? (saving ? "Saving…" : "Show my matches →") : "Next →"}
+          </Button>
         </div>
       </div>
     </div>

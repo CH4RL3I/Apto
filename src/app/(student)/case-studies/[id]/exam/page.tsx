@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CASE_STUDIES, type CaseStudy } from "@/lib/questionnaire/case-studies";
 import type { Submission } from "@/types";
 import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/Button";
 
 export default function ExamPage() {
   const params = useParams();
@@ -219,46 +221,51 @@ export default function ExamPage() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
-  // Submitted state - show score
+  // Submitted state - show score (celebratory: coral score circle)
   if (submitted && score !== null) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center px-6">
+      <div className="min-h-screen bg-pale-sage flex items-center justify-center px-6">
         <div className="max-w-md w-full text-center fade-in">
           <div className="score-reveal">
-            <div className="w-28 h-28 rounded-full bg-primary flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/30">
-              <span className="text-4xl font-bold text-white">{score}</span>
+            <div className="w-28 h-28 rounded-full bg-coral flex items-center justify-center mx-auto mb-6 shadow-2">
+              <span className="text-4xl font-bold text-chalk stat-num">{score}</span>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Submission Scored!</h1>
-          <p className="text-muted mb-8">
-            Your solution to &quot;{caseStudy?.title}&quot; has been evaluated.
+          <div className="eyebrow mb-2">Submitted</div>
+          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2 tracking-tight">Great work.</h1>
+          <p className="text-charcoal-2 mb-8 leading-relaxed">
+            Your solution to &ldquo;{caseStudy?.title}&rdquo; has been evaluated.
           </p>
 
           {scoreBreakdown && (
-            <div className="bg-white rounded-xl border border-border p-6 mb-8 text-left">
-              <h3 className="font-semibold text-slate-900 mb-4">Score Breakdown</h3>
+            <div className="bg-chalk rounded-[14px] shadow-1 p-6 mb-8 text-left">
+              <h3 className="eyebrow mb-3">Score breakdown</h3>
               {Object.entries(scoreBreakdown).map(([criterion, value]) => (
-                <div key={criterion} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <span className="text-sm text-slate-600">{criterion}</span>
-                  <span className="text-sm font-semibold text-slate-900">{value}/100</span>
+                <div key={criterion} className="flex items-center justify-between py-2 border-b border-sage-mist-2 last:border-0">
+                  <span className="text-sm text-charcoal-2">{criterion}</span>
+                  <span className="text-sm font-semibold text-charcoal stat-num">{value}/100</span>
                 </div>
               ))}
             </div>
           )}
 
           <div className="flex flex-col gap-3">
-            <button
+            <Button
               onClick={() => router.push("/dashboard")}
-              className="w-full bg-primary text-white py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors"
+              variant="primary"
+              size="lg"
+              className="w-full"
             >
-              Go to Dashboard
-            </button>
-            <button
+              Go to dashboard
+            </Button>
+            <Button
               onClick={() => router.push("/results")}
-              className="w-full border border-border text-slate-600 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+              variant="ghost"
+              size="lg"
+              className="w-full"
             >
-              Explore More Careers
-            </button>
+              Explore more careers
+            </Button>
           </div>
         </div>
       </div>
@@ -268,52 +275,53 @@ export default function ExamPage() {
   // Honor code modal
   if (!honorAccepted) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center px-6">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-border p-8 fade-in">
+      <div className="min-h-screen bg-pale-sage flex items-center justify-center px-6">
+        <div className="max-w-md w-full bg-chalk rounded-[14px] shadow-2 p-8 fade-in">
           <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
+            <div className="w-12 h-12 bg-pale-sage rounded-full flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck className="w-6 h-6 text-sage" strokeWidth={1.75} />
             </div>
-            <h2 className="text-xl font-semibold text-slate-900">Honor Code</h2>
+            <div className="eyebrow mb-2">Trust layer</div>
+            <h2 className="text-xl font-bold text-charcoal tracking-tight">Honor code</h2>
           </div>
 
-          <div className="space-y-3 text-sm text-slate-600 mb-6">
+          <div className="space-y-3 text-sm text-charcoal-2 mb-6 leading-relaxed">
             <p>Before starting, please confirm:</p>
             <ul className="space-y-2 ml-4">
               <li className="flex gap-2">
-                <span className="text-primary">&#x2022;</span>
-                I will complete this case study using my own knowledge
+                <span className="text-sage font-bold">•</span>
+                I will complete this case study using my own knowledge.
               </li>
               <li className="flex gap-2">
-                <span className="text-primary">&#x2022;</span>
-                I understand my tab switches and paste activity are monitored
+                <span className="text-sage font-bold">•</span>
+                I understand my tab switches and paste activity are monitored.
               </li>
               <li className="flex gap-2">
-                <span className="text-primary">&#x2022;</span>
-                I will not use AI tools to generate my response
+                <span className="text-sage font-bold">•</span>
+                I will not use AI tools to generate my response.
               </li>
               <li className="flex gap-2">
-                <span className="text-primary">&#x2022;</span>
-                My submission may be reviewed by the case-study company
+                <span className="text-sage font-bold">•</span>
+                My submission may be reviewed by the case-study company.
               </li>
             </ul>
           </div>
 
           <div className="flex flex-col gap-3">
-            <button
+            <Button
               onClick={() => {
                 setHonorAccepted(true);
                 handleStartExam();
               }}
-              className="w-full bg-primary text-white py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors"
+              variant="primary"
+              size="lg"
+              className="w-full"
             >
-              I Agree &mdash; Start Exam
-            </button>
+              I agree — start exam
+            </Button>
             <button
               onClick={() => router.back()}
-              className="w-full text-muted py-2 text-sm hover:text-slate-900 transition-colors"
+              className="w-full text-charcoal-2 py-2 text-sm hover:text-charcoal transition-colors"
             >
               Go back
             </button>
@@ -327,35 +335,35 @@ export default function ExamPage() {
   return (
     <div className="min-h-screen exam-mode flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-3 bg-slate-800 border-b border-slate-700">
+      <div className="surface-2 flex items-center justify-between px-6 py-3 border-b border-dim">
         <div className="flex items-center gap-4">
           <Logo variant="dark" height={20} priority />
           <span className="sr-only">Apto</span>
-          <span className="text-sm text-slate-400">|</span>
-          <span className="text-sm text-slate-300">{caseStudy?.title}</span>
+          <span className="text-sm text-dim">|</span>
+          <span className="text-sm text-pale-sage">{caseStudy?.title}</span>
         </div>
 
         <div className="flex items-center gap-6">
           {/* Integrity indicators */}
-          <div className="flex items-center gap-4 text-xs text-slate-400">
+          <div className="flex items-center gap-4 text-xs text-dim">
             {tabSwitches > 0 && (
-              <span className="text-amber-400">Tab switches: {tabSwitches}</span>
+              <span className="text-warn font-medium">Tab switches: {tabSwitches}</span>
             )}
             {pasteCount > 0 && (
-              <span className="text-amber-400">Pastes: {pasteCount}</span>
+              <span className="text-warn font-medium">Pastes: {pasteCount}</span>
             )}
           </div>
 
           {/* Timer */}
           {timeLeft !== null && (
-            <div className={`text-lg font-mono font-bold ${timeLeft < 300 ? "text-red-400" : "text-white"}`}>
+            <div className={`text-lg font-mono font-bold ${timeLeft < 300 ? "text-warn" : "text-pale-sage"}`}>
               {formatTime(timeLeft)}
             </div>
           )}
 
           {/* Auto-save indicator */}
           {lastSaved && (
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-dim">
               Saved {lastSaved.toLocaleTimeString()}
             </span>
           )}
@@ -363,12 +371,12 @@ export default function ExamPage() {
       </div>
 
       {/* Brief summary (collapsible) */}
-      <div className="px-6 py-4 bg-slate-800/50 border-b border-slate-700">
+      <div className="surface-2 border-b border-dim px-6 py-4">
         <details>
-          <summary className="text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">
+          <summary className="text-sm text-dim cursor-pointer hover:text-pale-sage transition-colors">
             View brief
           </summary>
-          <pre className="mt-3 text-sm text-slate-400 leading-relaxed whitespace-pre-wrap font-sans max-w-3xl">
+          <pre className="mt-3 text-sm text-dim leading-relaxed whitespace-pre-wrap font-sans max-w-3xl">
             {caseStudy?.body}
           </pre>
         </details>
@@ -380,22 +388,23 @@ export default function ExamPage() {
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           onPaste={handlePaste}
-          placeholder="Write your solution here..."
-          className="flex-1 w-full max-w-4xl mx-auto bg-slate-800 border border-slate-700 rounded-xl p-6 text-slate-200 text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-slate-500"
+          placeholder="Write your solution here…"
+          className="flex-1 w-full max-w-4xl mx-auto surface-3 border border-dim rounded-[14px] p-6 text-pale-sage text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-sage/50 focus:border-sage placeholder:text-dim"
         />
 
         <div className="flex items-center justify-between max-w-4xl mx-auto w-full mt-4">
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-dim">
             {answer.trim().split(/\s+/).filter(Boolean).length} words
           </span>
 
-          <button
+          <Button
             onClick={handleSubmit}
             disabled={submitting || answer.trim().length < 10}
-            className="bg-primary text-white px-8 py-3 rounded-xl font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
+            variant="primary"
+            size="lg"
           >
-            {submitting ? "Submitting..." : "Submit Solution"}
-          </button>
+            {submitting ? "Submitting…" : "Submit solution"}
+          </Button>
         </div>
       </div>
     </div>
