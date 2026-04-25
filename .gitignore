@@ -3,3 +3,12 @@ node_modules
 .env*.local
 .next
 .DS_Store
+
+# Claude Code local state
+.claude/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
+# macOS / iCloud sync duplicates (e.g. "foo 2.svg")
+* 2.*
