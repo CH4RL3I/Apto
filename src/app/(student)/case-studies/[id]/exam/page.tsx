@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { CaseStudy, Company, Submission } from "@/types";
+import { CASE_STUDIES, type CaseStudy } from "@/lib/questionnaire/case-studies";
+import type { Submission } from "@/types";
 
 export default function ExamPage() {
   const params = useParams();
@@ -11,7 +12,7 @@ export default function ExamPage() {
   const supabase = createClient();
   const caseStudyId = params.id as string;
 
-  const [caseStudy, setCaseStudy] = useState<(CaseStudy & { company: Company }) | null>(null);
+  const [caseStudy, setCaseStudy] = useState<CaseStudy | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [answer, setAnswer] = useState("");
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -35,14 +36,9 @@ export default function ExamPage() {
   // Load case study and create/resume submission
   useEffect(() => {
     async function init() {
-      const { data: cs } = await supabase
-        .from("case_studies")
-        .select("*, company:companies(*)")
-        .eq("id", caseStudyId)
-        .single();
-
+      const cs = CASE_STUDIES.find((c) => c.id === caseStudyId);
       if (!cs) { router.push("/results"); return; }
-      setCaseStudy(cs as CaseStudy & { company: Company });
+      setCaseStudy(cs);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
@@ -71,7 +67,7 @@ export default function ExamPage() {
 
     const interval = setInterval(() => {
       const elapsed = (Date.now() - new Date(submission.started_at!).getTime()) / 1000;
-      const remaining = caseStudy.time_minutes * 60 - elapsed;
+      const remaining = caseStudy.estimatedMinutes * 60 - elapsed;
       setTimeLeft(Math.max(0, Math.round(remaining)));
 
       if (remaining <= 0) {
@@ -177,11 +173,17 @@ export default function ExamPage() {
     else if (wordCount < 150) baseScore = 72 + Math.random() * 15;
     else baseScore = 80 + Math.random() * 12;
 
+    // Generic 4-criterion breakdown derived from skills_tested where present.
+    const criteria =
+      caseStudy && caseStudy.skillsTested.length > 0
+        ? caseStudy.skillsTested.slice(0, 4)
+        : ["Analysis", "Structure", "Communication", "Decisiveness"];
     const breakdown: Record<string, number> = {};
-    if (caseStudy?.rubric) {
-      for (const item of caseStudy.rubric) {
-        breakdown[item.criterion] = Math.max(30, Math.min(98, Math.round(baseScore + (Math.random() - 0.5) * 16)));
-      }
+    for (const criterion of criteria) {
+      breakdown[criterion] = Math.max(
+        30,
+        Math.min(98, Math.round(baseScore + (Math.random() - 0.5) * 16)),
+      );
     }
 
     await supabase
@@ -293,7 +295,7 @@ export default function ExamPage() {
               </li>
               <li className="flex gap-2">
                 <span className="text-primary">&#x2022;</span>
-                My submission may be reviewed by {caseStudy?.company?.name || "the company"}
+                My submission may be reviewed by the case-study company
               </li>
             </ul>
           </div>
@@ -364,9 +366,9 @@ export default function ExamPage() {
           <summary className="text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">
             View brief
           </summary>
-          <p className="mt-3 text-sm text-slate-400 leading-relaxed whitespace-pre-line max-w-3xl">
-            {caseStudy?.brief}
-          </p>
+          <pre className="mt-3 text-sm text-slate-400 leading-relaxed whitespace-pre-wrap font-sans max-w-3xl">
+            {caseStudy?.body}
+          </pre>
         </details>
       </div>
 
