@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Career, CaseStudy } from "@/types";
+import { Logo } from "@/components/Logo";
 
 export default async function CareerDetailPage({
   params,
@@ -37,7 +38,7 @@ export default async function CareerDetailPage({
       {/* Nav */}
       <nav className="border-b border-border bg-white">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">apto</Link>
+          <Link href="/" aria-label="Apto home" className="inline-flex items-center"><Logo height={28} priority /></Link>
           <div className="flex items-center gap-4">
             <Link href="/results" className="text-sm text-muted hover:text-slate-900">&larr; Back to matches</Link>
             <Link href="/dashboard" className="text-sm text-muted hover:text-slate-900">Dashboard</Link>

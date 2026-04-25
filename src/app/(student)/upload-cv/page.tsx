@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 interface ParsedCV {
   name: string | null;
@@ -133,7 +134,7 @@ export default function UploadCVPage() {
       {/* Top bar */}
       <div className="border-b border-border bg-white">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">apto</Link>
+          <Link href="/" aria-label="Apto home" className="inline-flex items-center"><Logo height={28} priority /></Link>
           <span className="text-sm text-muted">Optional step</span>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -47,8 +48,12 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold text-primary">
-            apto
+          <Link
+            href="/"
+            aria-label="Apto home"
+            className="inline-flex items-center justify-center"
+          >
+            <Logo height={56} priority />
           </Link>
           <p className="mt-2 text-muted">Discover your career path</p>
         </div>

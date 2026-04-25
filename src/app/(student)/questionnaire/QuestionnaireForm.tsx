@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { QUESTIONS, type Answers, type Question } from "@/lib/questionnaire/questions";
 import { submitQuestionnaire } from "./actions";
+import { Logo } from "@/components/Logo";
 
 export default function QuestionnaireForm() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -71,8 +72,8 @@ export default function QuestionnaireForm() {
       {/* Top bar */}
       <div className="border-b border-border bg-white">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">
-            apto
+          <Link href="/" aria-label="Apto home" className="inline-flex items-center">
+            <Logo height={28} priority />
           </Link>
           <span className="text-sm text-muted">
             {currentStep + 1} / {QUESTIONS.length}

@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto w-full">
-        <Link href="/" className="text-2xl font-bold text-primary">
-          apto
+        <Link href="/" aria-label="Apto home" className="inline-flex items-center">
+          <Logo height={36} priority />
         </Link>
         <div className="flex items-center gap-4">
           <Link

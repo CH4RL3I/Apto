@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 interface SubmissionRow {
   id: string;
@@ -115,7 +116,7 @@ export default function CompanyPortalPage() {
     <div className="min-h-screen bg-surface">
       <nav className="border-b border-border bg-white">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">apto</Link>
+          <Link href="/" aria-label="Apto home" className="inline-flex items-center"><Logo height={28} priority /></Link>
           <div className="flex items-center gap-2">
             <span className="text-xs px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">Company</span>
             <span className="text-sm text-muted">{company?.name as string}</span>

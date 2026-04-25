@@ -8,6 +8,7 @@ import {
 } from "@/lib/questionnaire/matching";
 import type { Answers } from "@/lib/questionnaire/questions";
 import { resetQuestionnaire } from "../questionnaire/actions";
+import { Logo } from "@/components/Logo";
 
 export default async function ResultsPage() {
   const supabase = await createClient();
@@ -39,8 +40,8 @@ export default async function ResultsPage() {
     <div className="min-h-screen bg-surface">
       <nav className="border-b border-border bg-white">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">
-            apto
+          <Link href="/" aria-label="Apto home" className="inline-flex items-center">
+            <Logo height={28} priority />
           </Link>
           <Link
             href="/dashboard"
