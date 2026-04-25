@@ -34,18 +34,27 @@ import { ButtonLink } from "@/components/ui/Button";
 const essence = [
   {
     icon: Compass,
-    title: "Guided exploration",
-    copy: "Students discover paths that fit their strengths, values, and interests.",
+    eyebrow: "Guided exploration",
+    title: "Discover paths that fit you.",
+    copy: "Helping students discover paths that fit their strengths and interests.",
   },
   {
     icon: Users,
-    title: "Real connections",
-    copy: "Top performers get closer to companies through practical case-study work.",
+    eyebrow: "Practical clarity",
+    title: "See the real work.",
+    copy: "Helping students understand what real work looks like and how to move toward it.",
+  },
+  {
+    icon: Leaf,
+    eyebrow: "Real connections",
+    title: "Meet real companies.",
+    copy: "Connecting top talent with real companies through authentic, case-study challenges.",
   },
   {
     icon: Target,
-    title: "Practical clarity",
-    copy: "Every recommendation explains what the role looks like and how to move toward it.",
+    eyebrow: "Real impact",
+    title: "Build real proof.",
+    copy: "Real-world learning. Real impact. Real opportunities.",
   },
 ];
 
@@ -128,7 +137,9 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-6 pb-20 pt-8 md:pt-14">
         <section className="grid lg:grid-cols-[0.92fr_1.08fr] gap-10 lg:gap-14 items-center">
-          <div className="fade-in">
+          <div className="fade-in relative">
+            <span className="apto-spark absolute -left-6 top-2 hidden text-3xl md:block" aria-hidden />
+
             <Pill
               variant="sage"
               size="md"
@@ -144,12 +155,16 @@ export default function Home() {
               Explore what fits. Understand the work. Achieve with proof.
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg md:text-xl leading-relaxed text-charcoal-2">
+            <p className="mt-6 max-w-xl text-lg md:text-xl italic font-medium text-sage-700">
+              Guiding curious minds toward real-world success.
+            </p>
+
+            <p className="mt-4 max-w-2xl text-base md:text-lg leading-relaxed text-charcoal-2">
               Apto turns career discovery into real-world practice: students get matched to paths, solve company-style challenges, and build evidence of what they can do.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <ButtonLink href="/login" variant="primary" size="lg" icon={<ArrowRight className="w-4 h-4" strokeWidth={1.75} />}>
+              <ButtonLink href="/signup" variant="primary" size="lg" icon={<ArrowRight className="w-4 h-4" strokeWidth={1.75} />}>
                 Discover your path
               </ButtonLink>
               <ButtonLink href="#how-it-works" variant="ghost" size="lg">
@@ -157,29 +172,49 @@ export default function Home() {
               </ButtonLink>
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-sage">
+            <div className="mt-10 inline-flex flex-wrap items-center gap-3 rounded-full border border-sage-mist-2 bg-chalk/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.28em] text-sage shadow-1 backdrop-blur md:text-sm">
               <span>Explore.</span>
+              <span aria-hidden className="apto-spark text-base text-coral">★</span>
               <span>Understand.</span>
+              <span aria-hidden className="apto-spark text-base text-coral">★</span>
               <span className="text-coral">Achieve.</span>
-            </div>
-
-            <div className="mt-10 grid sm:grid-cols-3 gap-3">
-              {essence.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.title} className="rounded-[14px] border border-sage-mist-2/70 bg-chalk/78 p-4 shadow-1 backdrop-blur">
-                    <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-sage/30 text-sage">
-                      <Icon className="h-5 w-5" strokeWidth={1.75} />
-                    </div>
-                    <h3 className="text-sm font-bold text-charcoal">{item.title}</h3>
-                    <p className="mt-1 text-xs leading-relaxed text-charcoal-2">{item.copy}</p>
-                  </div>
-                );
-              })}
             </div>
           </div>
 
           <AppPreview />
+        </section>
+
+        <section id="brand-essence" className="mt-24 md:mt-28">
+          <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <div className="eyebrow mb-3">Brand essence</div>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
+                Four ideas guide everything we build.
+              </h2>
+            </div>
+            <p className="max-w-md text-sm md:text-base leading-relaxed text-charcoal-2">
+              From the first questionnaire to the final interview invitation — these promises hold throughout.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {essence.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article
+                  key={item.eyebrow}
+                  className="group relative flex h-full flex-col rounded-[20px] border border-sage-mist-2 bg-chalk p-6 shadow-1 transition-all hover:-translate-y-0.5 hover:shadow-2"
+                >
+                  <span className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-sage/30 text-sage transition-colors group-hover:border-sage group-hover:bg-pale-sage">
+                    <Icon className="h-6 w-6" strokeWidth={1.75} />
+                  </span>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-sage">{item.eyebrow}</div>
+                  <h3 className="mt-2 text-lg font-bold tracking-tight text-charcoal">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-charcoal-2">{item.copy}</p>
+                </article>
+              );
+            })}
+          </div>
         </section>
 
         <section id="how-it-works" className="mt-24 rounded-[28px] bg-chalk p-6 md:p-10 shadow-2">
@@ -337,25 +372,57 @@ export default function Home() {
         </section>
       </main>
 
-      <section className="bg-sage px-6 py-20 text-center text-chalk">
-        <div className="max-w-2xl mx-auto">
-          <div className="eyebrow mb-3 text-chalk/70">Start here</div>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Turn student potential into real work.
-          </h2>
-          <p className="mt-4 text-lg text-pale-sage">
-            Explore paths, understand roles, and prove your skills through practical challenges.
-          </p>
-          <ButtonLink href="/login" variant="coral" size="lg" className="mt-8">
-            Get started free
-          </ButtonLink>
+      <section className="relative overflow-hidden bg-sage px-6 py-20 text-chalk md:py-28">
+        <div className="poster-path opacity-90" />
+        <svg className="absolute inset-x-0 bottom-0 hidden h-40 w-full md:block" viewBox="0 0 1200 200" aria-hidden="true">
+          <path className="apto-path-line" stroke="rgba(250, 250, 247, 0.4)" strokeWidth="2.5" d="M0 140 C 200 40, 400 200, 600 110 S 1000 30, 1200 110" />
+        </svg>
+        <span className="apto-spark absolute right-12 top-12 hidden text-5xl md:block" aria-hidden />
+
+        <div className="relative z-10 mx-auto grid max-w-5xl gap-10 md:grid-cols-[1.1fr_1fr] md:items-center">
+          <div>
+            <div className="eyebrow mb-4 text-chalk/70">Start here</div>
+            <h2 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight">
+              Turn student potential into real work.
+            </h2>
+            <p className="mt-5 max-w-md text-base md:text-lg leading-relaxed text-pale-sage">
+              Explore paths, understand roles, and prove your skills through practical challenges from real companies.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <ButtonLink href="/signup" variant="coral" size="lg" icon={<ArrowRight className="h-4 w-4" strokeWidth={1.75} />}>
+                Get started free
+              </ButtonLink>
+              <Link href="/login/company" className="focus-ring rounded-lg px-3 py-2 text-sm font-semibold text-chalk/80 hover:text-chalk transition-colors">
+                Hiring? Post a challenge -&gt;
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="rounded-[24px] bg-chalk/10 p-6 backdrop-blur-sm md:p-8">
+              <div className="tagline-caps text-[11px] leading-7 text-chalk/85">
+                Explore.<br />Understand.<br /><span className="text-coral">Achieve.</span>
+              </div>
+              <p className="mt-6 text-base leading-relaxed text-pale-sage">
+                Three steps. One real path. From curious student to interview-ready candidate.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <footer className="border-t border-sage-mist-2 bg-chalk px-6 py-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between gap-4 text-sm text-charcoal-2">
-          <Logo height={22} variant="lockup" />
-          <span>&copy; 2026 Apto. Built at START Unicorn Lisbon.</span>
+      <footer className="border-t border-sage-mist-2 bg-chalk px-6 py-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <Logo height={26} variant="lockup" />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-charcoal-2">
+            <Link href="/login" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Student log in</Link>
+            <Link href="/login/company" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Company log in</Link>
+            <Link href="#brand-essence" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Brand essence</Link>
+            <Link href="#how-it-works" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">How it works</Link>
+          </div>
+          <span className="text-xs text-charcoal-3">&copy; 2026 Apto. Built at START Unicorn Lisbon.</span>
         </div>
       </footer>
     </div>
