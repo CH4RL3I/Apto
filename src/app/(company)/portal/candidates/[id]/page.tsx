@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Check, FileText } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 
 export default async function CandidateDetailPage({
   params,
@@ -17,9 +17,17 @@ export default async function CandidateDetailPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: company } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!company) redirect("/dashboard");
+
   const { data: submission } = await supabase
     .from("submissions")
-    .select("*, case_study:case_studies(*, career:careers(*)), users(*)")
+    .select("*, users(*)")
     .eq("id", id)
     .single();
 
@@ -27,10 +35,30 @@ export default async function CandidateDetailPage({
 
   const sub = submission as Record<string, unknown>;
   const studentUser = sub.users as Record<string, unknown> | null;
-  const cs = sub.case_study as Record<string, unknown> | null;
-  const career = cs?.career as Record<string, unknown> | null;
   const integrity = sub.integrity_signals as Record<string, number> | null;
   const scoreBreakdown = sub.score_breakdown as Record<string, number> | null;
+
+  const { data: caseStudy } = await supabase
+    .from("case_studies")
+    .select("id, title, career:careers(title)")
+    .eq("id", sub.case_study_id as string)
+    .eq("company_id", company.id)
+    .single();
+
+  if (!caseStudy) redirect("/portal");
+
+  const rawCaseStudy = caseStudy as unknown as {
+    id: string;
+    title: string;
+    career: { title: string } | { title: string }[] | null;
+  };
+  const cs = {
+    id: rawCaseStudy.id,
+    title: rawCaseStudy.title,
+    career: Array.isArray(rawCaseStudy.career)
+      ? rawCaseStudy.career[0] ?? null
+      : rawCaseStudy.career,
+  };
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -40,12 +68,6 @@ export default async function CandidateDetailPage({
 
   const cvParsed = profile?.cv_parsed as Record<string, unknown> | null;
   const cvSkills = (profile?.cv_skills as string[]) || [];
-
-  const { data: company } = await supabase
-    .from("companies")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
 
   const { data: existingInvite } = await supabase
     .from("invitations")
@@ -79,9 +101,9 @@ export default async function CandidateDetailPage({
             </h1>
             <p className="text-charcoal-2 mt-1">{studentUser?.email as string}</p>
             <div className="flex flex-wrap items-center gap-2 mt-3">
-              <Pill variant="mist" size="md">{cs?.title as string}</Pill>
-              {career && (
-                <Pill variant="sageSolid" size="md">{career.title as string}</Pill>
+              <Pill variant="mist" size="md">{cs.title}</Pill>
+              {cs.career && (
+                <Pill variant="sageSolid" size="md">{cs.career.title}</Pill>
               )}
             </div>
           </div>
@@ -172,14 +194,12 @@ export default async function CandidateDetailPage({
                   <p className="font-semibold text-sage text-sm">Interview invite sent</p>
                 </div>
               ) : (
-                <ButtonLink
-                  href={`/portal/invite?submission=${sub.id}&user=${sub.user_id}&company=${company?.id}`}
-                  variant="primary"
-                  size="md"
-                  className="w-full"
-                >
-                  Send interview invite
-                </ButtonLink>
+                <form action="/portal/invite" method="post">
+                  <input type="hidden" name="submissionId" value={sub.id as string} />
+                  <Button type="submit" variant="primary" size="md" className="w-full">
+                    Send interview invite
+                  </Button>
+                </form>
               )}
             </div>
 

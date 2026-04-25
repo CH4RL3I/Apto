@@ -60,7 +60,7 @@ create table if not exists public.careers (
 
 -- Case Studies
 create table if not exists public.case_studies (
-  id uuid primary key default uuid_generate_v4(),
+  id text primary key default uuid_generate_v4()::text,
   career_id uuid references public.careers(id),
   company_id uuid references public.companies(id),
   title text not null,
@@ -77,7 +77,7 @@ create table if not exists public.case_studies (
 create table if not exists public.submissions (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid references public.users(id) on delete cascade,
-  case_study_id uuid references public.case_studies(id),
+  case_study_id text not null,
   answer text,
   integrity_signals jsonb default '{"tab_switches": 0, "paste_count": 0, "fullscreen_exits": 0, "time_spent_seconds": 0}',
   started_at timestamptz,
@@ -124,6 +124,15 @@ create policy "Company can read students" on public.users for select using (
 create policy "Profiles select own" on public.profiles for select using (auth.uid() = user_id);
 create policy "Profiles insert own" on public.profiles for insert with check (auth.uid() = user_id);
 create policy "Profiles update own" on public.profiles for update using (auth.uid() = user_id);
+create policy "Companies can read submitted profiles" on public.profiles for select using (
+  exists (
+    select 1 from public.submissions s
+    join public.case_studies cs on cs.id = s.case_study_id
+    join public.companies c on cs.company_id = c.id
+    where s.user_id = profiles.user_id
+      and c.user_id = auth.uid()
+  )
+);
 
 -- Careers: public read
 create policy "Careers public read" on public.careers for select using (true);
@@ -158,7 +167,15 @@ create policy "Companies update submissions" on public.submissions for update us
 -- Invitations
 create policy "Students see own invitations" on public.invitations for select using (auth.uid() = user_id);
 create policy "Companies manage invitations" on public.invitations for insert with check (
-  exists (select 1 from public.companies c where c.id = company_id and c.user_id = auth.uid())
+  exists (
+    select 1 from public.submissions s
+    join public.case_studies cs on cs.id = s.case_study_id
+    join public.companies c on cs.company_id = c.id
+    where s.id = public.invitations.submission_id
+      and s.user_id = public.invitations.user_id
+      and c.id = public.invitations.company_id
+      and c.user_id = auth.uid()
+  )
 );
 create policy "Companies see invitations" on public.invitations for select using (
   exists (select 1 from public.companies c where c.id = company_id and c.user_id = auth.uid())

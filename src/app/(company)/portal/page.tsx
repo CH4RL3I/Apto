@@ -11,13 +11,14 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 interface SubmissionRow {
   id: string;
   user_id: string;
+  case_study_id: string;
   answer: string | null;
   score: number | null;
   status: string;
   submitted_at: string | null;
   integrity_signals: Record<string, number> | null;
   cv_snapshot_url: string | null;
-  case_study: { id: string; title: string } | null;
+  case_study: { id: string; title: string };
   users: { name: string | null; email: string; avatar_url: string | null } | null;
 }
 
@@ -51,20 +52,34 @@ export default function CompanyPortalPage() {
 
       const { data: caseStudies } = await supabase
         .from("case_studies")
-        .select("id")
+        .select("id, title")
         .eq("company_id", comp.id);
 
-      const csIds = (caseStudies || []).map((cs: Record<string, unknown>) => cs.id as string);
+      const caseStudyTitles = new Map(
+        (caseStudies || []).map((cs: Record<string, unknown>) => [
+          cs.id as string,
+          cs.title as string,
+        ]),
+      );
+      const csIds = [...caseStudyTitles.keys()];
 
       if (csIds.length > 0) {
         const { data: subs } = await supabase
           .from("submissions")
-          .select("*, case_study:case_studies(id, title), users(*)")
+          .select("*, users(*)")
           .in("case_study_id", csIds)
           .in("status", ["scored", "submitted", "reviewed"])
           .order("score", { ascending: false, nullsFirst: false });
 
-        setSubmissions((subs || []) as SubmissionRow[]);
+        setSubmissions(
+          ((subs || []) as Omit<SubmissionRow, "case_study">[]).map((sub) => ({
+            ...sub,
+            case_study: {
+              id: sub.case_study_id,
+              title: caseStudyTitles.get(sub.case_study_id) ?? "Case study",
+            },
+          })),
+        );
       }
 
       const { data: invs } = await supabase
@@ -80,15 +95,19 @@ export default function CompanyPortalPage() {
 
   async function sendInvite(sub: SubmissionRow) {
     if (!company) return;
-    await supabase.from("invitations").insert({
-      submission_id: sub.id,
-      user_id: sub.user_id,
-      company_id: company.id as string,
-      status: "pending",
-      message: "We were impressed by your case study submission and would like to invite you for an interview!",
+    const response = await fetch("/portal/invite", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ submissionId: sub.id }),
     });
-    await supabase.from("submissions").update({ status: "reviewed" }).eq("id", sub.id);
-    setInvitedIds((prev) => new Set([...prev, sub.id]));
+    if (response.ok) {
+      setInvitedIds((prev) => new Set([...prev, sub.id]));
+      setSubmissions((prev) =>
+        prev.map((item) =>
+          item.id === sub.id ? { ...item, status: "reviewed" } : item,
+        ),
+      );
+    }
   }
 
   const filtered = submissions

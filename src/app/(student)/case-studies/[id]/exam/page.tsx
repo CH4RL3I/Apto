@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 export default function ExamPage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const caseStudyId = params.id as string;
 
   const [caseStudy, setCaseStudy] = useState<CaseStudy | null>(null);
@@ -24,6 +24,7 @@ export default function ExamPage() {
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [scoreBreakdown, setScoreBreakdown] = useState<Record<string, number> | null>(null);
+  const [examError, setExamError] = useState<string | null>(null);
 
   // Integrity signals
   const [tabSwitches, setTabSwitches] = useState(0);
@@ -34,7 +35,113 @@ export default function ExamPage() {
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  answerRef.current = answer;
+  useEffect(() => {
+    answerRef.current = answer;
+  }, [answer]);
+
+  const handleStartExam = useCallback(async () => {
+    setExamError(null);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Get CV URL from profile to attach to submission
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("cv_url")
+      .eq("user_id", user.id)
+      .single();
+
+    const { data: sub, error } = await supabase
+      .from("submissions")
+      .insert({
+        user_id: user.id,
+        case_study_id: caseStudyId,
+        status: "in_progress",
+        started_at: new Date().toISOString(),
+        integrity_signals: { tab_switches: 0, paste_count: 0, fullscreen_exits: 0, time_spent_seconds: 0 },
+        cv_snapshot_url: profile?.cv_url || null,
+      })
+      .select()
+      .single();
+
+    if (error || !sub) {
+      setExamError(error?.message ?? "Could not start this case study.");
+      setHonorAccepted(false);
+      return;
+    }
+
+    setSubmission(sub as Submission);
+
+    // Try fullscreen
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch { /* ok if denied */ }
+  }, [caseStudyId, supabase]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!submission || submitting) return;
+    setSubmitting(true);
+    setExamError(null);
+
+    const timeSpent = submission.started_at
+      ? Math.round((Date.now() - new Date(submission.started_at).getTime()) / 1000)
+      : 0;
+
+    const signals = {
+      tab_switches: tabSwitches,
+      paste_count: pasteCount,
+      fullscreen_exits: fullscreenExits,
+      time_spent_seconds: timeSpent,
+    };
+
+    // Mock scoring
+    const wordCount = answerRef.current.trim().split(/\s+/).length;
+    let baseScore: number;
+    if (wordCount < 20) baseScore = 45 + Math.random() * 15;
+    else if (wordCount < 50) baseScore = 60 + Math.random() * 15;
+    else if (wordCount < 150) baseScore = 72 + Math.random() * 15;
+    else baseScore = 80 + Math.random() * 12;
+
+    // Generic 4-criterion breakdown derived from skills_tested where present.
+    const criteria =
+      caseStudy && caseStudy.skillsTested.length > 0
+        ? caseStudy.skillsTested.slice(0, 4)
+        : ["Analysis", "Structure", "Communication", "Decisiveness"];
+    const breakdown: Record<string, number> = {};
+    for (const criterion of criteria) {
+      breakdown[criterion] = Math.max(
+        30,
+        Math.min(98, Math.round(baseScore + (Math.random() - 0.5) * 16)),
+      );
+    }
+
+    const { error } = await supabase
+      .from("submissions")
+      .update({
+        answer: answerRef.current,
+        submitted_at: new Date().toISOString(),
+        status: "scored",
+        score: Math.round(baseScore),
+        score_breakdown: breakdown,
+        integrity_signals: signals,
+      })
+      .eq("id", submission.id);
+
+    if (error) {
+      setExamError(error.message);
+      setSubmitting(false);
+      return;
+    }
+
+    // Exit fullscreen
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+    } catch { /* ok */ }
+
+    setScore(Math.round(baseScore));
+    setScoreBreakdown(breakdown);
+    setSubmitted(true);
+  }, [submission, submitting, tabSwitches, pasteCount, fullscreenExits, caseStudy, supabase]);
 
   // Load case study and create/resume submission
   useEffect(() => {
@@ -53,7 +160,7 @@ export default function ExamPage() {
         .eq("user_id", user.id)
         .eq("case_study_id", caseStudyId)
         .eq("status", "in_progress")
-        .single();
+        .maybeSingle();
 
       if (existing) {
         setSubmission(existing as Submission);
@@ -62,7 +169,7 @@ export default function ExamPage() {
       }
     }
     init();
-  }, [caseStudyId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [caseStudyId, router, supabase]);
 
   // Timer countdown
   useEffect(() => {
@@ -80,7 +187,7 @@ export default function ExamPage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [submission?.started_at, caseStudy]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [submission?.started_at, caseStudy, handleSubmit]);
 
   // Anti-cheat: visibility change
   useEffect(() => {
@@ -117,102 +224,15 @@ export default function ExamPage() {
     return () => {
       if (autoSaveTimer.current) clearInterval(autoSaveTimer.current);
     };
-  }, [submission]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleStartExam = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Get CV URL from profile to attach to submission
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("cv_url")
-      .eq("user_id", user.id)
-      .single();
-
-    const { data: sub } = await supabase
-      .from("submissions")
-      .insert({
-        user_id: user.id,
-        case_study_id: caseStudyId,
-        status: "in_progress",
-        started_at: new Date().toISOString(),
-        integrity_signals: { tab_switches: 0, paste_count: 0, fullscreen_exits: 0, time_spent_seconds: 0 },
-        cv_snapshot_url: profile?.cv_url || null,
-      })
-      .select()
-      .single();
-
-    if (sub) {
-      setSubmission(sub as Submission);
-    }
-
-    // Try fullscreen
-    try {
-      await document.documentElement.requestFullscreen();
-    } catch { /* ok if denied */ }
-  }, [caseStudyId, supabase]);
-
-  const handleSubmit = useCallback(async () => {
-    if (!submission || submitting) return;
-    setSubmitting(true);
-
-    const timeSpent = submission.started_at
-      ? Math.round((Date.now() - new Date(submission.started_at).getTime()) / 1000)
-      : 0;
-
-    const signals = {
-      tab_switches: tabSwitches,
-      paste_count: pasteCount,
-      fullscreen_exits: fullscreenExits,
-      time_spent_seconds: timeSpent,
-    };
-
-    // Mock scoring
-    const wordCount = answerRef.current.trim().split(/\s+/).length;
-    let baseScore: number;
-    if (wordCount < 20) baseScore = 45 + Math.random() * 15;
-    else if (wordCount < 50) baseScore = 60 + Math.random() * 15;
-    else if (wordCount < 150) baseScore = 72 + Math.random() * 15;
-    else baseScore = 80 + Math.random() * 12;
-
-    // Generic 4-criterion breakdown derived from skills_tested where present.
-    const criteria =
-      caseStudy && caseStudy.skillsTested.length > 0
-        ? caseStudy.skillsTested.slice(0, 4)
-        : ["Analysis", "Structure", "Communication", "Decisiveness"];
-    const breakdown: Record<string, number> = {};
-    for (const criterion of criteria) {
-      breakdown[criterion] = Math.max(
-        30,
-        Math.min(98, Math.round(baseScore + (Math.random() - 0.5) * 16)),
-      );
-    }
-
-    await supabase
-      .from("submissions")
-      .update({
-        answer: answerRef.current,
-        submitted_at: new Date().toISOString(),
-        status: "scored",
-        score: Math.round(baseScore),
-        score_breakdown: breakdown,
-        integrity_signals: signals,
-      })
-      .eq("id", submission.id);
-
-    // Exit fullscreen
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-    } catch { /* ok */ }
-
-    setScore(Math.round(baseScore));
-    setScoreBreakdown(breakdown);
-    setSubmitted(true);
-  }, [submission, submitting, tabSwitches, pasteCount, fullscreenExits, caseStudy, supabase]);
+  }, [submission, supabase]);
 
   function handlePaste() {
     setPasteCount((c) => c + 1);
+  }
+
+  function handleAnswerChange(value: string) {
+    answerRef.current = value;
+    setAnswer(value);
   }
 
   function formatTime(seconds: number) {
@@ -250,6 +270,11 @@ export default function ExamPage() {
           )}
 
           <div className="flex flex-col gap-3">
+            {examError && (
+              <p className="text-sm text-coral-700 bg-coral-100 rounded-lg px-3 py-2">
+                {examError}
+              </p>
+            )}
             <Button
               onClick={() => router.push("/dashboard")}
               variant="primary"
@@ -386,16 +411,19 @@ export default function ExamPage() {
       <div className="flex-1 flex flex-col p-6">
         <textarea
           value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
+          onChange={(e) => handleAnswerChange(e.target.value)}
           onPaste={handlePaste}
           placeholder="Write your solution here…"
           className="flex-1 w-full max-w-4xl mx-auto surface-3 border border-dim rounded-[14px] p-6 text-pale-sage text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-sage/50 focus:border-sage placeholder:text-dim"
         />
 
         <div className="flex items-center justify-between max-w-4xl mx-auto w-full mt-4">
-          <span className="text-xs text-dim">
-            {answer.trim().split(/\s+/).filter(Boolean).length} words
-          </span>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-dim">
+              {answer.trim().split(/\s+/).filter(Boolean).length} words
+            </span>
+            {examError && <span className="text-xs text-warn">{examError}</span>}
+          </div>
 
           <Button
             onClick={handleSubmit}

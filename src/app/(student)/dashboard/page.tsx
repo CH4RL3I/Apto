@@ -5,6 +5,7 @@ import { FileText } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
+import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
 
 type StatusVariant = "mist" | "sage" | "sageSolid" | "coralSolid";
 const statusVariant: Record<string, StatusVariant> = {
@@ -40,15 +41,39 @@ export default async function DashboardPage() {
 
   const { data: submissions } = await supabase
     .from("submissions")
-    .select("*, case_study:case_studies(*, company:companies(*))")
+    .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   const { data: invitations } = await supabase
     .from("invitations")
-    .select("*, company:companies(*), submission:submissions(*, case_study:case_studies(*))")
+    .select("*, company:companies(*), submission:submissions(*)")
     .eq("user_id", user.id)
     .order("sent_at", { ascending: false });
+
+  const caseStudyIds = new Set<string>();
+  for (const sub of submissions ?? []) {
+    if (typeof sub.case_study_id === "string") caseStudyIds.add(sub.case_study_id);
+  }
+  for (const inv of invitations ?? []) {
+    const submission = inv.submission as Record<string, unknown> | null;
+    if (typeof submission?.case_study_id === "string") {
+      caseStudyIds.add(submission.case_study_id);
+    }
+  }
+
+  const { data: dbCaseStudies } = caseStudyIds.size
+    ? await supabase
+        .from("case_studies")
+        .select("id, title")
+        .in("id", [...caseStudyIds])
+    : { data: [] };
+
+  const caseStudyTitles = new Map<string, string>();
+  for (const cs of CASE_STUDIES) caseStudyTitles.set(cs.id, cs.title);
+  for (const cs of dbCaseStudies ?? []) {
+    caseStudyTitles.set(cs.id as string, cs.title as string);
+  }
 
   const firstName = userData?.name ? userData.name.split(" ")[0] : null;
 
@@ -98,7 +123,9 @@ export default async function DashboardPage() {
                       )}
                       <p className="text-xs text-charcoal-2 mt-2">
                         Based on your submission to &ldquo;
-                        {((inv.submission as Record<string, unknown>)?.case_study as Record<string, unknown>)?.title as string}
+                        {caseStudyTitles.get(
+                          ((inv.submission as Record<string, unknown>)?.case_study_id as string) ?? "",
+                        ) ?? "Case study"}
                         &rdquo;
                       </p>
                     </div>
@@ -137,15 +164,16 @@ export default async function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {submissions.map((sub: Record<string, unknown>) => {
-                const cs = sub.case_study as Record<string, unknown> | null;
-                const company = cs?.company as Record<string, unknown> | null;
                 const status = sub.status as string;
+                const caseStudyId = sub.case_study_id as string;
                 return (
                   <div key={sub.id as string} className="bg-chalk rounded-[14px] shadow-1 hover:shadow-2 transition-shadow p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <div className="eyebrow mb-1">{company?.name as string}</div>
-                        <h3 className="font-semibold text-charcoal">{cs?.title as string}</h3>
+                        <div className="eyebrow mb-1">Case study</div>
+                        <h3 className="font-semibold text-charcoal">
+                          {caseStudyTitles.get(caseStudyId) ?? "Case study"}
+                        </h3>
                         <div className="flex items-center gap-3 mt-3">
                           <Pill variant={statusVariant[status] ?? "mist"} size="sm">
                             <span className="capitalize">{status.replace("_", " ")}</span>

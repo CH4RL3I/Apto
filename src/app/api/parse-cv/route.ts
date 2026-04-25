@@ -1,10 +1,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -16,6 +26,24 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "GEMINI_API_KEY not configured" },
         { status: 500 }
+      );
+    }
+
+    const validTypes = new Set([
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ]);
+    if (!validTypes.has(file.type)) {
+      return NextResponse.json(
+        { error: "Only PDF and DOCX files are supported" },
+        { status: 400 },
+      );
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "File must be under 5MB" },
+        { status: 400 },
       );
     }
 

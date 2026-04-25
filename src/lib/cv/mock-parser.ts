@@ -11,6 +11,7 @@ export interface ParsedCV {
 }
 
 export function mockParseCV(fileName: string): ParsedCV {
+  void fileName;
   // Simulate a parsed CV with plausible data
   // In V2: send the file to an LLM with a structured extraction prompt
   return {
