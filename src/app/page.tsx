@@ -23,7 +23,6 @@ import {
   Sparkles,
   Star,
   Target,
-  TrendingUp,
   UserCircle2,
   Users,
 } from "lucide-react";
@@ -275,49 +274,63 @@ export default function Home() {
           <div className="rounded-[24px] bg-chalk p-8 md:p-10 shadow-2">
             <div className="grid gap-10 md:grid-cols-[1.1fr_1fr] md:items-center">
               <div>
-                <div className="eyebrow mb-3">Trusted by</div>
+                <div className="eyebrow mb-3">Built around real work</div>
                 <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-charcoal">
-                  Real companies. Real challenges. Real outcomes.
+                  No vanity metrics. Just real briefs, real industries, real proof.
                 </h2>
                 <p className="mt-3 max-w-md text-sm md:text-base leading-relaxed text-charcoal-2">
-                  Top firms post case studies. Students earn proof. Matches turn into interviews.
+                  Apto is an MVP. We&rsquo;re not going to pretend we have thousands of users yet. Here&rsquo;s what we actually have on day one.
                 </p>
-                <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm font-bold uppercase tracking-[0.18em] text-charcoal-2">
-                  <span>BCG</span>
-                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
-                  <span>Amplitude</span>
-                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
-                  <span>Microsoft</span>
-                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
-                  <span>Walmart</span>
-                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
-                  <span>EcoThread</span>
+                <div className="mt-6 flex flex-wrap gap-1.5">
+                  {[
+                    "Product",
+                    "Data",
+                    "Design",
+                    "Consulting",
+                    "Finance",
+                    "Marketing",
+                    "Sales",
+                    "People & HR",
+                    "Sports",
+                    "Pharma",
+                    "Engineering",
+                    "Sustainability",
+                    "Public policy",
+                    "+ 13 more",
+                  ].map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-sage-mist-2 bg-pale-sage px-2.5 py-1 text-[11px] font-semibold text-sage-700"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-[16px] bg-pale-sage p-5 shadow-1">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-sage">
-                    <TrendingUp className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    Students
+                    <Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Case studies
                   </div>
-                  <div className="stat-num mt-3 text-3xl text-charcoal">2,450+</div>
-                  <div className="mt-1 text-xs text-charcoal-2">Building proof on Apto</div>
+                  <div className="stat-num mt-3 text-3xl text-charcoal">36</div>
+                  <div className="mt-1 text-xs text-charcoal-2">Live in the library</div>
                 </div>
                 <div className="rounded-[16px] bg-pale-sage p-5 shadow-1">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-sage">
-                    <Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    Challenges
+                    <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Roles &amp; fields
                   </div>
-                  <div className="stat-num mt-3 text-3xl text-charcoal">1,200+</div>
-                  <div className="mt-1 text-xs text-charcoal-2">Completed by top performers</div>
+                  <div className="stat-num mt-3 text-3xl text-charcoal">26</div>
+                  <div className="mt-1 text-xs text-charcoal-2">From product to journalism</div>
                 </div>
                 <div className="col-span-2 rounded-[16px] border border-sage-mist-2 bg-chalk p-5 shadow-1">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-sage">
                     <Star className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    Impact to date
+                    What makes a brief
                   </div>
                   <p className="mt-3 text-sm leading-relaxed text-charcoal-2">
-                    Apto turns student potential into real work — case studies from top companies, real feedback, real opportunities.
+                    Open-ended company-style problems. No multiple choice, no trivia. You write a real answer; we score it like a hiring panel would.
                   </p>
                 </div>
               </div>
