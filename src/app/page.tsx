@@ -483,75 +483,74 @@ function AppPreview() {
                 <p className="mt-1 text-xs text-charcoal-2">Explore challenges. Build skills. Make an impact.</p>
               </div>
 
-              <div className="grid xl:grid-cols-[1fr_190px] gap-5">
+              <div className="space-y-5">
                 <div>
                   <div className="mb-3 flex items-center justify-between">
                     <h3 className="text-xs font-bold text-charcoal">Recommended for you</h3>
-                    <span className="text-[11px] font-semibold text-sage">View all</span>
+                    <span className="whitespace-nowrap text-[11px] font-semibold text-sage">View all</span>
                   </div>
-                  <div className="grid sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2.5">
                     {mockChallenges.map((challenge) => {
                       const Icon = challenge.icon;
                       return (
-                        <div key={challenge.title} className="rounded-[14px] bg-sage p-4 text-chalk shadow-1">
+                        <div key={challenge.title} className="flex min-w-0 flex-col rounded-[12px] bg-sage p-3 text-chalk shadow-1">
                           <Pill variant="coralSolid" size="sm">{challenge.label}</Pill>
-                          <h4 className="mt-3 min-h-[70px] text-sm font-bold leading-snug">{challenge.title}</h4>
-                          <div className="mt-3 flex items-center gap-1.5 text-xs text-pale-sage">
-                            <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
-                            {challenge.company}
+                          <h4 className="mt-2 line-clamp-3 text-[11px] font-bold leading-snug">{challenge.title}</h4>
+                          <div className="mt-2 flex items-center gap-1 text-[10px] text-pale-sage">
+                            <Icon className="h-3 w-3 shrink-0" strokeWidth={1.75} />
+                            <span className="truncate">{challenge.company}</span>
                           </div>
-                          <div className="mt-4 flex items-center gap-2 text-[10px] text-chalk/72">
-                            <CalendarDays className="h-3 w-3" strokeWidth={1.75} />
-                            {challenge.meta}
-                            <span>Beginner</span>
+                          <div className="mt-2 flex items-center gap-1 text-[9px] text-chalk/75">
+                            <CalendarDays className="h-2.5 w-2.5 shrink-0" strokeWidth={1.75} />
+                            <span className="truncate">{challenge.meta}</span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
+                </div>
 
-                  <div className="mt-8">
-                    <h3 className="mb-3 text-xs font-bold text-charcoal">Your progress</h3>
-                    <div className="grid sm:grid-cols-3 gap-3">
-                      {[
-                        ["Learning streak", "7 days", "Keep going"],
-                        ["Skills unlocked", "12", "+3 this week"],
-                        ["Impact score", "820", "Top 15%"],
-                      ].map(([label, value, caption]) => (
-                        <div key={label} className="rounded-[12px] border border-sage-mist-2 bg-chalk p-4 shadow-1">
-                          <div className="text-[11px] font-semibold text-charcoal-2">{label}</div>
-                          <div className="stat-num mt-1 text-2xl text-charcoal">{value}</div>
-                          <div className="mt-1 text-[10px] text-charcoal-3">{caption}</div>
-                        </div>
-                      ))}
-                    </div>
+                <div>
+                  <h3 className="mb-3 text-xs font-bold text-charcoal">Your progress</h3>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {[
+                      ["Learning streak", "7 days", "Keep going"],
+                      ["Skills unlocked", "12", "+3 this week"],
+                      ["Impact score", "820", "Top 15%"],
+                    ].map(([label, value, caption]) => (
+                      <div key={label} className="min-w-0 rounded-[12px] border border-sage-mist-2 bg-chalk p-3 shadow-1">
+                        <div className="truncate text-[10px] font-semibold text-charcoal-2">{label}</div>
+                        <div className="stat-num mt-1 text-xl text-charcoal">{value}</div>
+                        <div className="mt-0.5 truncate text-[9px] text-charcoal-3">{caption}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <aside className="rounded-[16px] border border-sage-mist-2 bg-chalk p-4 shadow-1">
-                  <div className="mb-4 flex items-center justify-between">
+                <div className="rounded-[14px] border border-sage-mist-2 bg-chalk p-4 shadow-1">
+                  <div className="mb-3 flex items-center justify-between">
                     <h3 className="text-xs font-bold text-charcoal">Upcoming events</h3>
-                    <span className="text-[10px] font-semibold text-sage">See all</span>
+                    <span className="whitespace-nowrap text-[10px] font-semibold text-sage">See all</span>
                   </div>
-                  <div className="space-y-3">
+                  <div className="grid gap-2 sm:grid-cols-3">
                     {[
-                      ["Case Prep Workshop", "by BCG", "May 24 - 6:00 PM"],
-                      ["Product Careers 101", "by Amplitude", "May 27 - 7:00 PM"],
-                      ["Build Your Portfolio", "by Apto", "May 30 - 6:30 PM"],
+                      ["Case Prep Workshop", "BCG", "May 24"],
+                      ["Product Careers 101", "Amplitude", "May 27"],
+                      ["Build Your Portfolio", "Apto", "May 30"],
                     ].map(([title, host, time]) => (
-                      <div key={title} className="grid grid-cols-[28px_1fr] gap-3 rounded-[12px] bg-pale-sage p-3">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-chalk text-sage">
-                          <CalendarDays className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      <div key={title} className="flex min-w-0 items-start gap-2 rounded-[10px] bg-pale-sage p-2.5">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chalk text-sage">
+                          <CalendarDays className="h-3 w-3" strokeWidth={1.75} />
                         </div>
-                        <div>
-                          <div className="text-[11px] font-bold leading-tight text-charcoal">{title}</div>
-                          <div className="text-[10px] text-charcoal-2">{host}</div>
-                          <div className="mt-1 text-[10px] text-charcoal-3">{time}</div>
+                        <div className="min-w-0">
+                          <div className="truncate text-[11px] font-bold leading-tight text-charcoal">{title}</div>
+                          <div className="truncate text-[9px] text-charcoal-2">by {host}</div>
+                          <div className="mt-0.5 text-[9px] text-charcoal-3">{time}</div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </aside>
+                </div>
               </div>
             </div>
           </div>
