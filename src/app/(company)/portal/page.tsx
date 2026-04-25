@@ -165,6 +165,14 @@ export default function CompanyPortalPage() {
             </Link>
             <Pill variant="coral" size="sm">Company</Pill>
             <span className="text-sm text-charcoal-2">{company?.name as string}</span>
+            <form action="/auth/signout" method="post">
+              <button
+                type="submit"
+                className="text-sm font-medium text-charcoal-2 hover:text-charcoal transition-colors"
+              >
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
       </nav>
