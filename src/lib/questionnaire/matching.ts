@@ -1,4 +1,5 @@
 import type { Answers } from "./questions.ts";
+import { CASE_STUDIES, type CaseStudy } from "./case-studies.ts";
 
 export type ValueKey =
   | "content"
@@ -735,4 +736,39 @@ export function getMatches(
     reasons,
     matchPercent: Math.min(98, Math.round((score / denom) * 100)),
   }));
+}
+
+// ─── Case study pairing ─────────────────────────────────────
+// Given a job, find the case studies whose frontmatter metadata
+// best fits it. Uses fields/industries overlap + mode + output match.
+function scoreCaseStudyForJob(cs: CaseStudy, job: Job): number {
+  let score = 0;
+  // Fields overlap (max 9)
+  const fieldOverlap = cs.matchesFields.filter((f) =>
+    job.fields.includes(f),
+  ).length;
+  score += Math.min(9, fieldOverlap * 5);
+  // Industries overlap (max 8)
+  const industryOverlap = cs.matchesIndustries.filter((i) =>
+    job.industries.includes(i),
+  ).length;
+  score += Math.min(8, industryOverlap * 3);
+  // Mode match (5)
+  if (cs.matchesMode === job.mode) score += 5;
+  // Output match (5)
+  if (cs.matchesOutput === job.output) score += 5;
+  return score;
+}
+
+export function findCaseStudiesForJob(
+  job: Job,
+  limit = 2,
+): (CaseStudy & { fitScore: number })[] {
+  return CASE_STUDIES.map((cs) => ({
+    ...cs,
+    fitScore: scoreCaseStudyForJob(cs, job),
+  }))
+    .filter((cs) => cs.fitScore > 0)
+    .sort((a, b) => b.fitScore - a.fitScore)
+    .slice(0, limit);
 }

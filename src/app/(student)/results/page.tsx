@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getMatches, type ParsedCV } from "@/lib/questionnaire/matching";
+import {
+  getMatches,
+  findCaseStudiesForJob,
+  type ParsedCV,
+} from "@/lib/questionnaire/matching";
 import type { Answers } from "@/lib/questionnaire/questions";
 import { resetQuestionnaire } from "../questionnaire/actions";
 
@@ -25,7 +29,11 @@ export default async function ResultsPage() {
   const cv = (profile.cv_parsed ?? null) as ParsedCV | null;
   const matches = getMatches(answers, cv);
   const hasMatches = matches.length > 0 && matches[0].score > 0;
-  const topJobId = matches[0]?.id;
+  const matchesWithCases = matches.map((m) => ({
+    ...m,
+    cases: findCaseStudiesForJob(m, 2),
+  }));
+  const topCaseId = matchesWithCases[0]?.cases[0]?.id;
 
   return (
     <div className="min-h-screen bg-surface">
@@ -66,7 +74,7 @@ export default async function ResultsPage() {
 
         {hasMatches ? (
           <div className="space-y-5">
-            {matches.map((job, index) => {
+            {matchesWithCases.map((job, index) => {
               const isTop = index === 0;
               return (
                 <article
@@ -104,12 +112,35 @@ export default async function ResultsPage() {
                     </ul>
                   )}
 
-                  <div className="mt-5 rounded-xl bg-surface px-4 py-3 text-sm text-slate-700 leading-relaxed">
-                    <span className="font-semibold text-slate-900">
-                      Case study:{" "}
-                    </span>
-                    {job.caseStudy}
-                  </div>
+                  {job.cases.length > 0 && (
+                    <div className="mt-5 space-y-2">
+                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                        Try a real case
+                      </div>
+                      {job.cases.map((cs) => (
+                        <Link
+                          key={cs.id}
+                          href={`/case-studies/${cs.id}`}
+                          className="block rounded-xl bg-surface hover:bg-slate-100 px-4 py-3 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold text-slate-900">
+                                {cs.title}
+                              </div>
+                              <div className="text-xs text-muted mt-0.5 capitalize">
+                                {cs.duration} · {cs.estimatedMinutes} min ·{" "}
+                                {cs.skillsTested.slice(0, 3).join(" · ")}
+                              </div>
+                            </div>
+                            <span className="text-primary text-sm flex-shrink-0">
+                              →
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </article>
               );
             })}
@@ -125,12 +156,12 @@ export default async function ResultsPage() {
               Start over
             </button>
           </form>
-          {hasMatches && topJobId && (
+          {hasMatches && topCaseId && (
             <Link
-              href={`/case-studies/${topJobId}`}
+              href={`/case-studies/${topCaseId}`}
               className="px-8 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors text-center"
             >
-              Open full case study →
+              Open top case study →
             </Link>
           )}
         </div>
