@@ -1,22 +1,30 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   BarChart3,
   Bell,
   Bookmark,
+  BookmarkPlus,
   Briefcase,
   Building2,
   CalendarDays,
+  Clock,
   Compass,
+  Globe2,
   GraduationCap,
   Home as HomeIcon,
   Leaf,
+  MapPin,
   MessageCircle,
   Search,
   Settings,
   ShieldCheck,
   Sparkles,
+  Star,
   Target,
+  TrendingUp,
+  UserCircle2,
   Users,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -209,7 +217,80 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-8 grid lg:grid-cols-[1fr_1.65fr] gap-6">
+        <section className="mt-20 md:mt-24">
+          <div className="mb-8 md:mb-10 max-w-3xl">
+            <div className="eyebrow mb-3">Inside Apto</div>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
+              A working product. Not a deck.
+            </h2>
+            <p className="mt-3 max-w-xl text-charcoal-2">
+              Real challenges from real companies, profiles built from real work, and matches you can act on.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <ChallengeCard />
+            <StudentProfileCard />
+            <MatchMadeCard />
+            <CompanyPreviewCard />
+          </div>
+        </section>
+
+        <section className="mt-16 md:mt-20">
+          <div className="rounded-[24px] bg-chalk p-8 md:p-10 shadow-2">
+            <div className="grid gap-10 md:grid-cols-[1.1fr_1fr] md:items-center">
+              <div>
+                <div className="eyebrow mb-3">Trusted by</div>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-charcoal">
+                  Real companies. Real challenges. Real outcomes.
+                </h2>
+                <p className="mt-3 max-w-md text-sm md:text-base leading-relaxed text-charcoal-2">
+                  Top firms post case studies. Students earn proof. Matches turn into interviews.
+                </p>
+                <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm font-bold uppercase tracking-[0.18em] text-charcoal-2">
+                  <span>BCG</span>
+                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
+                  <span>Amplitude</span>
+                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
+                  <span>Microsoft</span>
+                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
+                  <span>Walmart</span>
+                  <span aria-hidden className="h-1 w-1 rounded-full bg-sage-mist-2" />
+                  <span>EcoThread</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-[16px] bg-pale-sage p-5 shadow-1">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-sage">
+                    <TrendingUp className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Students
+                  </div>
+                  <div className="stat-num mt-3 text-3xl text-charcoal">2,450+</div>
+                  <div className="mt-1 text-xs text-charcoal-2">Building proof on Apto</div>
+                </div>
+                <div className="rounded-[16px] bg-pale-sage p-5 shadow-1">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-sage">
+                    <Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Challenges
+                  </div>
+                  <div className="stat-num mt-3 text-3xl text-charcoal">1,200+</div>
+                  <div className="mt-1 text-xs text-charcoal-2">Completed by top performers</div>
+                </div>
+                <div className="col-span-2 rounded-[16px] border border-sage-mist-2 bg-chalk p-5 shadow-1">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-sage">
+                    <Star className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Impact to date
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-charcoal-2">
+                    Apto turns student potential into real work — case studies from top companies, real feedback, real opportunities.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-16 md:mt-20 grid lg:grid-cols-[1fr_1.65fr] gap-6">
           <div className="relative overflow-hidden rounded-[24px] bg-sage p-8 text-chalk shadow-2">
             <div className="poster-path" />
             <div className="relative z-10">
@@ -413,5 +494,169 @@ function AppPreview() {
         <BarChart3 className="h-6 w-6" strokeWidth={1.75} />
       </div>
     </div>
+  );
+}
+
+function ChallengeCard() {
+  return (
+    <article className="relative flex flex-col rounded-[20px] border border-sage-mist-2 bg-chalk p-5 shadow-1 transition-shadow hover:shadow-2">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <Pill variant="coralSolid" size="sm">Hot</Pill>
+        <BookmarkPlus className="h-4 w-4 text-charcoal-3" strokeWidth={1.75} />
+      </div>
+      <h3 className="text-base font-bold leading-snug tracking-tight text-charcoal">
+        Market Entry Strategy for Sustainable Fashion
+      </h3>
+      <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-sage">
+        <Leaf className="h-3.5 w-3.5" strokeWidth={1.75} />
+        EcoThread
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <span className="inline-flex items-center gap-1 rounded-full bg-pale-sage px-2 py-0.5 text-[11px] font-semibold text-sage-700">
+          <Clock className="h-3 w-3" strokeWidth={1.75} />
+          4 weeks
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-pale-sage px-2 py-0.5 text-[11px] font-semibold text-sage-700">
+          <Users className="h-3 w-3" strokeWidth={1.75} />
+          Team
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-pale-sage px-2 py-0.5 text-[11px] font-semibold text-sage-700">
+          <Sparkles className="h-3 w-3" strokeWidth={1.75} />
+          Beginner
+        </span>
+      </div>
+      <p className="mt-3 text-xs leading-relaxed text-charcoal-2">
+        Help EcoThread identify new markets and a go-to-market strategy for their next phase of growth.
+      </p>
+      <div className="mt-5 flex items-end justify-between gap-3 border-t border-sage-mist-2 pt-4">
+        <div>
+          <div className="stat-num text-xl text-charcoal">$1,000</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Prize pool</div>
+        </div>
+        <div>
+          <div className="stat-num text-xl text-charcoal">420</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Joined</div>
+        </div>
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sage text-chalk shadow-1">
+          <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function StudentProfileCard() {
+  return (
+    <article className="flex flex-col rounded-[20px] border border-sage-mist-2 bg-chalk p-5 shadow-1 transition-shadow hover:shadow-2">
+      <div className="flex items-start gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sage text-chalk shadow-1">
+          <UserCircle2 className="h-7 w-7" strokeWidth={1.5} />
+        </div>
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-bold tracking-tight text-charcoal">Maya Sharma</h3>
+          <p className="text-xs font-semibold text-sage">Data &amp; Product Enthusiast</p>
+          <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-charcoal-2">
+            <MapPin className="h-3 w-3" strokeWidth={1.75} />
+            University of Toronto
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {["Data analysis", "Strategy", "Excel", "SQL"].map((skill) => (
+          <span key={skill} className="rounded-full bg-pale-sage px-2 py-0.5 text-[11px] font-semibold text-sage-700">
+            {skill}
+          </span>
+        ))}
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-2 border-t border-sage-mist-2 pt-4 text-center">
+        <div>
+          <div className="stat-num text-lg text-charcoal">8</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Challenges</div>
+        </div>
+        <div>
+          <div className="stat-num text-lg text-charcoal">820</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Impact score</div>
+        </div>
+        <div>
+          <div className="stat-num text-lg text-coral">15%</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Top student</div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function MatchMadeCard() {
+  return (
+    <article className="relative flex flex-col overflow-hidden rounded-[20px] border border-sage bg-pale-sage p-5 shadow-1">
+      <span className="apto-spark absolute right-5 top-5 text-2xl" aria-hidden />
+      <div className="eyebrow mb-2">Match made</div>
+      <h3 className="text-lg font-bold tracking-tight text-charcoal">Great match!</h3>
+      <p className="mt-1 text-xs text-charcoal-2">
+        You and Amplitude are a great fit based on your last submission.
+      </p>
+      <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-chalk px-3 py-1.5 text-sm font-bold text-charcoal shadow-1 self-start">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-coral-100 text-coral-700">
+          <BarChart3 className="h-3.5 w-3.5" strokeWidth={2} />
+        </span>
+        Amplitude
+      </div>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {["Product strategy", "Data", "User research"].map((skill) => (
+          <span key={skill} className="rounded-full border border-sage/40 bg-chalk/60 px-2 py-0.5 text-[11px] font-semibold text-sage-700">
+            {skill}
+          </span>
+        ))}
+      </div>
+      <div className="mt-5 flex items-center gap-3 border-t border-sage/30 pt-4">
+        <ButtonLink href="/login" variant="coral" size="sm" className="flex-1 justify-center">
+          View opportunity
+        </ButtonLink>
+        <button className="text-xs font-semibold text-charcoal-2 hover:text-charcoal" type="button">
+          Not now
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function CompanyPreviewCard() {
+  return (
+    <article className="flex flex-col rounded-[20px] border border-sage-mist-2 bg-chalk p-5 shadow-1 transition-shadow hover:shadow-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-pale-sage text-sage shadow-1">
+            <Building2 className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold tracking-tight text-charcoal">Boston Consulting Group</h3>
+            <p className="text-xs text-charcoal-2">Global management consulting</p>
+          </div>
+        </div>
+        <Bookmark className="h-4 w-4 text-charcoal-3" strokeWidth={1.75} />
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-[12px] bg-pale-sage p-2.5">
+          <Briefcase className="mx-auto mb-1 h-4 w-4 text-sage" strokeWidth={1.75} />
+          <div className="text-[10px] font-bold text-charcoal">Consulting</div>
+        </div>
+        <div className="rounded-[12px] bg-pale-sage p-2.5">
+          <Users className="mx-auto mb-1 h-4 w-4 text-sage" strokeWidth={1.75} />
+          <div className="text-[10px] font-bold text-charcoal">10k+ Staff</div>
+        </div>
+        <div className="rounded-[12px] bg-pale-sage p-2.5">
+          <Globe2 className="mx-auto mb-1 h-4 w-4 text-sage" strokeWidth={1.75} />
+          <div className="text-[10px] font-bold text-charcoal">90+ Offices</div>
+        </div>
+      </div>
+      <p className="mt-4 text-xs leading-relaxed text-charcoal-2">
+        Work on high-impact problems alongside global teams of senior strategists.
+      </p>
+      <div className="mt-5 border-t border-sage-mist-2 pt-4">
+        <ButtonLink href="/login" variant="primary" size="sm" className="w-full justify-center">
+          View open challenges
+        </ButtonLink>
+      </div>
+    </article>
   );
 }
