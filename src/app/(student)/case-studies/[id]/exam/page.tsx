@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CASE_STUDIES, type CaseStudy } from "@/lib/questionnaire/case-studies";
 import type { Submission } from "@/types";
+import { Logo } from "@/components/Logo";
 
 export default function ExamPage() {
   const params = useParams();
@@ -328,7 +329,8 @@ export default function ExamPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 bg-slate-800 border-b border-slate-700">
         <div className="flex items-center gap-4">
-          <span className="text-sm font-bold text-primary-light">apto</span>
+          <Logo variant="dark" height={20} priority />
+          <span className="sr-only">Apto</span>
           <span className="text-sm text-slate-400">|</span>
           <span className="text-sm text-slate-300">{caseStudy?.title}</span>
         </div>
