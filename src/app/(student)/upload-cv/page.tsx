@@ -4,7 +4,10 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { Check, FileText, UploadCloud, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/Button";
+import { Pill } from "@/components/ui/Pill";
 
 interface ParsedCV {
   name: string | null;
@@ -50,7 +53,6 @@ export default function UploadCVPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
 
-    // Upload to Supabase Storage
     const filePath = `${user.id}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await supabase.storage
       .from("cvs")
@@ -60,12 +62,10 @@ export default function UploadCVPage() {
       console.error("Upload error:", uploadError);
     }
 
-    // Get URL for reference
     const { data: urlData } = supabase.storage
       .from("cvs")
       .getPublicUrl(filePath);
 
-    // Send to Gemini for real parsing
     let result: ParsedCV;
     try {
       const formData = new FormData();
@@ -91,7 +91,6 @@ export default function UploadCVPage() {
       return;
     }
 
-    // Override name with auth data if available
     if (!result.name) {
       result.name = user.user_metadata?.full_name || user.user_metadata?.name || null;
     }
@@ -99,7 +98,6 @@ export default function UploadCVPage() {
     setParsed(result);
     setEditableSkills(result.skills);
 
-    // Save to profile
     await supabase
       .from("profiles")
       .update({
@@ -130,12 +128,12 @@ export default function UploadCVPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-chalk flex flex-col">
       {/* Top bar */}
-      <div className="border-b border-border bg-white">
+      <div className="border-b border-sage-mist-2 bg-chalk">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" aria-label="Apto home" className="inline-flex items-center"><Logo height={28} priority /></Link>
-          <span className="text-sm text-muted">Optional step</span>
+          <span className="eyebrow">Optional step</span>
         </div>
       </div>
 
@@ -143,16 +141,16 @@ export default function UploadCVPage() {
         <div className="w-full max-w-lg">
           {!parsed ? (
             <div className="fade-in">
-              <h1 className="text-2xl font-semibold text-slate-900 mb-2">
+              <h1 className="text-2xl md:text-[28px] font-bold text-charcoal mb-2 tracking-tight">
                 Have a CV? Upload it.
               </h1>
-              <p className="text-muted mb-8">
+              <p className="text-charcoal-2 mb-8 leading-relaxed">
                 We&apos;ll use AI to extract your skills and experience to improve your career matches.
                 This is optional &mdash; you can skip it.
               </p>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-[10px] px-4 py-3 mb-6">
                   {error}
                 </div>
               )}
@@ -168,12 +166,12 @@ export default function UploadCVPage() {
                   if (f) handleFile(f);
                 }}
                 onClick={() => inputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
+                className={`border-2 border-dashed rounded-[14px] p-12 text-center cursor-pointer transition-all ${
                   dragOver
-                    ? "border-primary bg-primary/5"
+                    ? "border-sage bg-pale-sage"
                     : file
-                    ? "border-green-400 bg-green-50"
-                    : "border-border hover:border-slate-400 bg-white"
+                    ? "border-sage bg-pale-sage"
+                    : "border-sage-mist-2 hover:border-sage-mist bg-chalk"
                 }`}
               >
                 <input
@@ -189,27 +187,23 @@ export default function UploadCVPage() {
 
                 {file ? (
                   <div>
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+                    <div className="w-12 h-12 bg-pale-sage rounded-full flex items-center justify-center mx-auto mb-3">
+                      <FileText className="w-6 h-6 text-sage" strokeWidth={1.75} />
                     </div>
-                    <p className="font-medium text-slate-900">{file.name}</p>
-                    <p className="text-sm text-muted mt-1">
+                    <p className="font-semibold text-charcoal">{file.name}</p>
+                    <p className="text-sm text-charcoal-2 mt-1">
                       {(file.size / 1024).toFixed(0)} KB &middot; Click to change
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
+                    <div className="w-12 h-12 bg-pale-sage rounded-full flex items-center justify-center mx-auto mb-3">
+                      <UploadCloud className="w-6 h-6 text-sage" strokeWidth={1.75} />
                     </div>
-                    <p className="font-medium text-slate-900">
+                    <p className="font-semibold text-charcoal">
                       Drop your CV here or click to browse
                     </p>
-                    <p className="text-sm text-muted mt-1">PDF or DOCX, max 5MB</p>
+                    <p className="text-sm text-charcoal-2 mt-1">PDF or DOCX, max 5MB</p>
                   </div>
                 )}
               </div>
@@ -217,10 +211,12 @@ export default function UploadCVPage() {
               {/* Actions */}
               <div className="flex flex-col gap-3 mt-6">
                 {file && (
-                  <button
+                  <Button
                     onClick={handleUploadAndParse}
                     disabled={uploading}
-                    className="w-full bg-primary text-white py-3 rounded-xl font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
                   >
                     {uploading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -228,115 +224,108 @@ export default function UploadCVPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        AI is analyzing your CV...
+                        AI is analyzing your CV…
                       </span>
                     ) : (
-                      "Upload & Analyze with AI"
+                      "Upload & analyze with AI"
                     )}
-                  </button>
+                  </Button>
                 )}
                 <button
                   onClick={() => router.push("/questionnaire")}
-                  className="w-full text-muted py-2 text-sm hover:text-slate-900 transition-colors"
+                  className="w-full text-charcoal-2 py-2 text-sm hover:text-charcoal transition-colors"
                 >
                   Skip for now &rarr;
                 </button>
               </div>
             </div>
           ) : (
-            // Parsed results - editable
             <div className="fade-in">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 bg-pale-sage rounded-full flex items-center justify-center">
+                  <Check className="w-5 h-5 text-sage" strokeWidth={1.75} />
                 </div>
-                <h1 className="text-2xl font-semibold text-slate-900">
-                  CV Analyzed
+                <h1 className="text-2xl md:text-[28px] font-bold text-charcoal tracking-tight">
+                  CV analyzed
                 </h1>
               </div>
 
-              <p className="text-muted mb-6">
+              <p className="text-charcoal-2 mb-6 leading-relaxed">
                 We extracted the following from your CV. Edit anything that&apos;s off before continuing.
               </p>
 
-              {/* Name */}
               {parsed.name && (
-                <div className="bg-white rounded-xl border border-border p-5 mb-4">
-                  <h3 className="text-sm font-medium text-muted mb-1">Name</h3>
-                  <p className="text-slate-900 font-medium">{parsed.name}</p>
+                <div className="bg-chalk rounded-[14px] shadow-1 p-5 mb-4">
+                  <h3 className="eyebrow mb-1">Name</h3>
+                  <p className="text-charcoal font-medium">{parsed.name}</p>
                 </div>
               )}
 
-              {/* Education */}
               {parsed.education && (
-                <div className="bg-white rounded-xl border border-border p-5 mb-4">
-                  <h3 className="text-sm font-medium text-muted mb-1">Education</h3>
-                  <p className="text-slate-900">{parsed.education}</p>
+                <div className="bg-chalk rounded-[14px] shadow-1 p-5 mb-4">
+                  <h3 className="eyebrow mb-1">Education</h3>
+                  <p className="text-charcoal">{parsed.education}</p>
                 </div>
               )}
 
-              {/* Experience */}
               {parsed.experience.length > 0 && (
-                <div className="bg-white rounded-xl border border-border p-5 mb-4">
-                  <h3 className="text-sm font-medium text-muted mb-2">Experience</h3>
-                  <ul className="space-y-1.5">
+                <div className="bg-chalk rounded-[14px] shadow-1 p-5 mb-4">
+                  <h3 className="eyebrow mb-3">Experience</h3>
+                  <ul className="space-y-2">
                     {parsed.experience.map((exp, i) => (
-                      <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                        {exp}
+                      <li key={i} className="text-sm text-charcoal flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sage mt-2 flex-shrink-0" />
+                        <span className="leading-relaxed">{exp}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {/* Skills (editable) */}
-              <div className="bg-white rounded-xl border border-border p-5 mb-4">
-                <h3 className="text-sm font-medium text-muted mb-3">
-                  Skills <span className="text-xs font-normal">(used for matching)</span>
+              <div className="bg-chalk rounded-[14px] shadow-1 p-5 mb-4">
+                <h3 className="eyebrow mb-3">
+                  Skills <span className="text-charcoal-3 normal-case tracking-normal">(used for matching)</span>
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {editableSkills.map((skill, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full bg-primary/10 text-primary"
+                      className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-pale-sage text-sage-700 font-semibold"
                     >
                       {skill}
                       <button
                         onClick={() => removeSkill(i)}
-                        className="hover:text-red-500 transition-colors"
+                        className="hover:text-coral-700 transition-colors"
+                        aria-label={`Remove ${skill}`}
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X className="w-3.5 h-3.5" strokeWidth={2} />
                       </button>
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Languages */}
               {parsed.languages.length > 0 && (
-                <div className="bg-white rounded-xl border border-border p-5 mb-6">
-                  <h3 className="text-sm font-medium text-muted mb-2">Languages</h3>
+                <div className="bg-chalk rounded-[14px] shadow-1 p-5 mb-6">
+                  <h3 className="eyebrow mb-3">Languages</h3>
                   <div className="flex flex-wrap gap-2">
                     {parsed.languages.map((lang, i) => (
-                      <span key={i} className="text-sm px-3 py-1.5 rounded-full bg-slate-100 text-slate-600">
+                      <Pill key={i} variant="mist" size="md">
                         {lang}
-                      </span>
+                      </Pill>
                     ))}
                   </div>
                 </div>
               )}
 
-              <button
+              <Button
                 onClick={handleContinue}
-                className="w-full bg-primary text-white py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors"
+                variant="primary"
+                size="lg"
+                className="w-full"
               >
-                Continue to Questionnaire &rarr;
-              </button>
+                Continue to questionnaire &rarr;
+              </Button>
             </div>
           )}
         </div>
