@@ -17,7 +17,7 @@
   --color-charcoal-2:  #5A6360;
   --color-charcoal-3:  #8A928F;
 
-  /* Legacy aliases — preserve existing class names that reference these */
+  /* Legacy aliases - preserve existing class names that reference these */
   --color-primary:       var(--color-sage);
   --color-primary-dark:  var(--color-sage-700);
   --color-primary-light: var(--color-sage-300);
@@ -28,12 +28,12 @@
   --color-muted:         var(--color-charcoal-2);
   --color-border:        var(--color-sage-mist-2);
 
-  /* Career-color legend → Sage variants (was indigo / pink / teal) */
+  /* Career-color legend -> Sage variants */
   --color-pm:   var(--color-sage);
   --color-ux:   var(--color-sage-700);
   --color-data: var(--color-coral);
 
-  /* Override Tailwind's built-in slate so text-slate-* / bg-slate-* re-route to brand */
+  /* Re-route slate classes to the Apto palette */
   --color-slate-900: #2D3330;
   --color-slate-800: #2D3330;
   --color-slate-700: #5A6360;
@@ -45,10 +45,10 @@
   --color-slate-100: #EEF4F2;
   --color-slate-50:  #F4F4EF;
 
-  /* Typography — Poppins via next/font (variable defined in layout.tsx) */
+  /* Typography - Poppins via next/font in layout.tsx */
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 
-  /* Brand motion — applies to every Tailwind transition utility */
+  /* Brand motion */
   --default-transition-timing-function: cubic-bezier(0.32, 0.72, 0.24, 1);
   --default-transition-duration: 220ms;
 
@@ -60,12 +60,21 @@
   --shadow-3: 0 8px 24px rgba(45, 51, 48, 0.08), 0 16px 40px rgba(45, 51, 48, 0.06);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--color-chalk);
   color: var(--color-charcoal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(232, 115, 90, 0.24);
+  color: var(--color-charcoal);
 }
 
 /* Brand utilities */
@@ -93,7 +102,102 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Exam mode — charcoal-based dark, replacing slate-on-navy */
+.brand-page {
+  background:
+    radial-gradient(circle at 7% 14%, rgba(232, 115, 90, 0.12), transparent 23rem),
+    radial-gradient(circle at 90% 8%, rgba(74, 124, 111, 0.14), transparent 26rem),
+    linear-gradient(180deg, var(--color-chalk) 0%, #f7f8f4 42%, var(--color-pale-sage) 100%);
+}
+
+.brand-dotted {
+  background-image: radial-gradient(rgba(74, 124, 111, 0.14) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.brand-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.brand-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(238, 244, 242, 0.96), transparent 16rem),
+    radial-gradient(circle at 86% 34%, rgba(232, 115, 90, 0.12), transparent 11rem),
+    linear-gradient(135deg, rgba(250, 250, 247, 0.92), rgba(238, 244, 242, 0.82));
+}
+
+.brand-shell::after {
+  content: "";
+  position: absolute;
+  right: -5rem;
+  bottom: -9rem;
+  z-index: -1;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 9999px;
+  border: 4.5rem solid rgba(74, 124, 111, 0.12);
+}
+
+.apto-path-line {
+  stroke: var(--color-sage);
+  stroke-dasharray: 7 8;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0.74;
+}
+
+.apto-path-line-soft {
+  stroke: rgba(74, 124, 111, 0.2);
+  stroke-width: 28;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.apto-spark {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-coral);
+  line-height: 1;
+}
+
+.apto-spark::before {
+  content: "*";
+  transform: rotate(45deg) scale(1.25);
+}
+
+.apto-dashboard-shell {
+  background:
+    linear-gradient(180deg, rgba(250, 250, 247, 0.98), rgba(250, 250, 247, 0.92)),
+    radial-gradient(circle at 8% 12%, rgba(74, 124, 111, 0.12), transparent 18rem),
+    radial-gradient(circle at 92% 28%, rgba(232, 115, 90, 0.10), transparent 18rem);
+}
+
+.poster-path {
+  position: absolute;
+  inset: auto -18% -36% 20%;
+  height: 78%;
+  border-radius: 9999px 9999px 0 0;
+  border: 42px solid rgba(238, 244, 242, 0.86);
+  border-bottom: 0;
+  transform: rotate(-18deg);
+  opacity: 0.92;
+}
+
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 3px rgba(74, 124, 111, 0.24);
+}
+
+/* Exam mode - charcoal-based dark */
 .exam-mode             { background: #1F2522; color: #EEF4F2; }
 .exam-mode .surface-2  { background: #262C29; }
 .exam-mode .surface-3  { background: #2D3330; }
@@ -101,7 +205,7 @@ body {
 .exam-mode .text-dim   { color: #8FA09A; }
 .exam-mode .text-warn  { color: #E8735A; }
 
-/* Range slider — reskinned in Sage */
+/* Range slider */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -123,7 +227,6 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 0 2px 6px rgba(45, 51, 48, 0.15);
 }
 
-/* Existing animations — retuned to brand "guided" easing */
 .progress-fill {
   transition: width 0.32s cubic-bezier(0.32, 0.72, 0.24, 1);
 }

@@ -12,7 +12,7 @@ const variantClasses: Record<Variant, string> = {
   ghost:
     "bg-transparent text-charcoal border border-sage-mist-2 hover:bg-pale-sage disabled:opacity-50",
   text:
-    "bg-transparent text-sage hover:underline px-2",
+    "bg-transparent text-sage hover:underline px-2 disabled:opacity-50",
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -22,7 +22,7 @@ const sizeClasses: Record<Size, string> = {
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-1.5 font-semibold transition-colors disabled:cursor-not-allowed";
+  "focus-ring inline-flex items-center justify-center gap-1.5 font-semibold transition-all disabled:cursor-not-allowed";
 
 interface CommonProps {
   variant?: Variant;
