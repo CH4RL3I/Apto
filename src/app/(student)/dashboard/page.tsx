@@ -37,7 +37,9 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  if (!profile?.completed_at) redirect("/questionnaire");
+  if (!profile?.completed_at) {
+    redirect(profile?.cv_url ? "/questionnaire" : "/upload-cv");
+  }
 
   const { data: submissions } = await supabase
     .from("submissions")
