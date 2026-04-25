@@ -2,12 +2,21 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Check, ShieldCheck, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CASE_STUDIES, type CaseStudy } from "@/lib/questionnaire/case-studies";
 import type { Submission } from "@/types";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
+
+type ScoringStatus = "idle" | "scoring" | "done" | "failed";
+
+interface ScoreBreakdownShape {
+  criteria?: Record<string, number>;
+  strengths?: string[];
+  improvements?: string[];
+  writtenFeedback?: string;
+}
 
 export default function ExamPage() {
   const params = useParams();
@@ -23,7 +32,8 @@ export default function ExamPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
-  const [scoreBreakdown, setScoreBreakdown] = useState<Record<string, number> | null>(null);
+  const [scoreBreakdown, setScoreBreakdown] = useState<ScoreBreakdownShape | null>(null);
+  const [scoringStatus, setScoringStatus] = useState<ScoringStatus>("idle");
   const [examError, setExamError] = useState<string | null>(null);
 
   // Integrity signals
@@ -94,54 +104,51 @@ export default function ExamPage() {
       time_spent_seconds: timeSpent,
     };
 
-    // Mock scoring
-    const wordCount = answerRef.current.trim().split(/\s+/).length;
-    let baseScore: number;
-    if (wordCount < 20) baseScore = 45 + Math.random() * 15;
-    else if (wordCount < 50) baseScore = 60 + Math.random() * 15;
-    else if (wordCount < 150) baseScore = 72 + Math.random() * 15;
-    else baseScore = 80 + Math.random() * 12;
-
-    // Generic 4-criterion breakdown derived from skills_tested where present.
-    const criteria =
-      caseStudy && caseStudy.skillsTested.length > 0
-        ? caseStudy.skillsTested.slice(0, 4)
-        : ["Analysis", "Structure", "Communication", "Decisiveness"];
-    const breakdown: Record<string, number> = {};
-    for (const criterion of criteria) {
-      breakdown[criterion] = Math.max(
-        30,
-        Math.min(98, Math.round(baseScore + (Math.random() - 0.5) * 16)),
-      );
-    }
-
-    const { error } = await supabase
+    // Phase 1: persist the answer immediately. Even if Gemini fails,
+    // the candidate's work is saved.
+    const { error: saveError } = await supabase
       .from("submissions")
       .update({
         answer: answerRef.current,
         submitted_at: new Date().toISOString(),
-        status: "scored",
-        score: Math.round(baseScore),
-        score_breakdown: breakdown,
+        status: "submitted",
         integrity_signals: signals,
       })
       .eq("id", submission.id);
 
-    if (error) {
-      setExamError(error.message);
+    if (saveError) {
+      setExamError(saveError.message);
       setSubmitting(false);
       return;
     }
 
-    // Exit fullscreen
+    // Exit fullscreen before showing the scoring overlay.
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
     } catch { /* ok */ }
 
-    setScore(Math.round(baseScore));
-    setScoreBreakdown(breakdown);
+    // Phase 2: ask the API to grade the submission.
+    setScoringStatus("scoring");
     setSubmitted(true);
-  }, [submission, submitting, tabSwitches, pasteCount, fullscreenExits, caseStudy, supabase]);
+
+    try {
+      const response = await fetch("/api/score-submission", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ submissionId: submission.id }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || "Scoring failed");
+      }
+      setScore(data.score);
+      setScoreBreakdown(data.scoreBreakdown);
+      setScoringStatus("done");
+    } catch (err) {
+      console.error("Scoring failed:", err);
+      setScoringStatus("failed");
+    }
+  }, [submission, submitting, tabSwitches, pasteCount, fullscreenExits, supabase]);
 
   // Load case study and create/resume submission
   useEffect(() => {
@@ -199,6 +206,17 @@ export default function ExamPage() {
     return () => document.removeEventListener("visibilitychange", handler);
   }, [honorAccepted]);
 
+  // Block tab close while Gemini is scoring (otherwise the user loses the result).
+  useEffect(() => {
+    if (scoringStatus !== "scoring") return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [scoringStatus]);
+
   // Anti-cheat: fullscreen exit
   useEffect(() => {
     if (!honorAccepted) return;
@@ -241,27 +259,143 @@ export default function ExamPage() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
-  // Submitted state - show score (celebratory: coral score circle)
-  if (submitted && score !== null) {
+  // Scoring in progress — full-screen overlay with spinner.
+  if (submitted && scoringStatus === "scoring") {
     return (
       <div className="min-h-screen bg-pale-sage flex items-center justify-center px-6">
         <div className="max-w-md w-full text-center fade-in">
-          <div className="score-reveal">
-            <div className="w-28 h-28 rounded-full bg-coral flex items-center justify-center mx-auto mb-6 shadow-2">
-              <span className="text-4xl font-bold text-chalk stat-num">{score}</span>
-            </div>
+          <div className="w-20 h-20 rounded-full bg-chalk shadow-2 flex items-center justify-center mx-auto mb-6">
+            <Sparkles className="w-9 h-9 text-sage animate-pulse" strokeWidth={1.75} />
+          </div>
+          <div className="eyebrow mb-2">Reviewing</div>
+          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-3 tracking-tight">
+            Gemini is reviewing your answer...
+          </h1>
+          <p className="text-charcoal-2 leading-relaxed">
+            This usually takes 10–20 seconds. Please don&apos;t close the tab.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Submission saved but auto-scoring failed.
+  if (submitted && scoringStatus === "failed") {
+    return (
+      <div className="min-h-screen bg-pale-sage flex items-center justify-center px-6">
+        <div className="max-w-md w-full text-center fade-in">
+          <div className="w-20 h-20 rounded-full bg-chalk shadow-1 flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl font-bold text-charcoal-3 stat-num">—</span>
           </div>
           <div className="eyebrow mb-2">Submitted</div>
-          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2 tracking-tight">Great work.</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-3 tracking-tight">
+            Saved.
+          </h1>
           <p className="text-charcoal-2 mb-8 leading-relaxed">
-            Your solution to &ldquo;{caseStudy?.title}&rdquo; has been evaluated.
+            Your answer to &ldquo;{caseStudy?.title}&rdquo; was saved, but we couldn&apos;t
+            auto-score it just now. You can retry from your dashboard.
           </p>
 
-          {scoreBreakdown && (
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => router.push("/dashboard")}
+              variant="primary"
+              size="lg"
+              className="w-full"
+            >
+              Go to dashboard
+            </Button>
+            <Button
+              onClick={() => router.push("/results")}
+              variant="ghost"
+              size="lg"
+              className="w-full"
+            >
+              Explore more careers
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Submitted state — show score and LLM feedback (celebratory).
+  if (submitted && score !== null) {
+    const criteriaMap = scoreBreakdown?.criteria ?? null;
+    const writtenFeedback = scoreBreakdown?.writtenFeedback;
+    const strengths = scoreBreakdown?.strengths ?? [];
+    const improvements = scoreBreakdown?.improvements ?? [];
+
+    return (
+      <div className="min-h-screen bg-pale-sage py-12 px-6">
+        <div className="max-w-2xl mx-auto fade-in">
+          <div className="text-center mb-8">
+            <div className="score-reveal">
+              <div className="w-28 h-28 rounded-full bg-coral flex items-center justify-center mx-auto mb-6 shadow-2">
+                <span className="text-4xl font-bold text-chalk stat-num">{score}</span>
+              </div>
+            </div>
+            <div className="eyebrow mb-2">Submitted</div>
+            <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-2 tracking-tight">
+              Great work.
+            </h1>
+            <p className="text-charcoal-2 leading-relaxed">
+              Your solution to &ldquo;{caseStudy?.title}&rdquo; has been evaluated.
+            </p>
+          </div>
+
+          {writtenFeedback && (
+            <div className="bg-chalk rounded-[14px] shadow-1 p-6 mb-4 text-left">
+              <h3 className="eyebrow mb-3">Reviewer notes</h3>
+              <p className="text-sm text-charcoal-2 leading-relaxed">{writtenFeedback}</p>
+            </div>
+          )}
+
+          {(strengths.length > 0 || improvements.length > 0) && (
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              {strengths.length > 0 && (
+                <div className="bg-chalk rounded-[14px] shadow-1 p-6 text-left">
+                  <h3 className="eyebrow mb-3 flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-sage" strokeWidth={2} />
+                    Strengths
+                  </h3>
+                  <ul className="space-y-2">
+                    {strengths.map((s, i) => (
+                      <li key={i} className="text-sm text-charcoal-2 flex gap-2">
+                        <span className="text-sage mt-0.5">•</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {improvements.length > 0 && (
+                <div className="bg-chalk rounded-[14px] shadow-1 p-6 text-left">
+                  <h3 className="eyebrow mb-3 flex items-center gap-1.5">
+                    <ArrowUpRight className="w-3.5 h-3.5 text-coral" strokeWidth={2} />
+                    Areas to improve
+                  </h3>
+                  <ul className="space-y-2">
+                    {improvements.map((s, i) => (
+                      <li key={i} className="text-sm text-charcoal-2 flex gap-2">
+                        <span className="text-coral mt-0.5">•</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {criteriaMap && Object.keys(criteriaMap).length > 0 && (
             <div className="bg-chalk rounded-[14px] shadow-1 p-6 mb-8 text-left">
               <h3 className="eyebrow mb-3">Score breakdown</h3>
-              {Object.entries(scoreBreakdown).map(([criterion, value]) => (
-                <div key={criterion} className="flex items-center justify-between py-2 border-b border-sage-mist-2 last:border-0">
+              {Object.entries(criteriaMap).map(([criterion, value]) => (
+                <div
+                  key={criterion}
+                  className="flex items-center justify-between py-2 border-b border-sage-mist-2 last:border-0"
+                >
                   <span className="text-sm text-charcoal-2">{criterion}</span>
                   <span className="text-sm font-semibold text-charcoal stat-num">{value}/100</span>
                 </div>

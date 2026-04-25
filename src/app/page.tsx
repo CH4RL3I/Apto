@@ -26,6 +26,7 @@ import {
   UserCircle2,
   Users,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
@@ -114,7 +115,24 @@ const steps = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let role: "student" | "company" | null = null;
+  if (user) {
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    role = (userRow?.role as "student" | "company" | undefined) ?? null;
+  }
+
+  const homeHref = role === "company" ? "/portal" : "/dashboard";
+
   return (
     <div className="min-h-screen brand-page text-charcoal">
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
@@ -122,15 +140,36 @@ export default function Home() {
           <Logo height={38} priority />
         </Link>
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="focus-ring rounded-lg px-2 py-1 text-sm font-medium text-charcoal-2 hover:text-charcoal transition-colors"
-          >
-            Log in
-          </Link>
-          <ButtonLink href="/login" variant="primary" size="sm">
-            Get started
-          </ButtonLink>
+          {user ? (
+            <>
+              <span className="hidden sm:inline text-sm text-charcoal-2">
+                {user.email}
+              </span>
+              <ButtonLink href={homeHref} variant="primary" size="sm">
+                {role === "company" ? "Open portal" : "Dashboard"}
+              </ButtonLink>
+              <form action="/auth/signout" method="post">
+                <button
+                  type="submit"
+                  className="focus-ring rounded-lg px-2 py-1 text-sm font-medium text-charcoal-2 hover:text-charcoal transition-colors"
+                >
+                  Sign out
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="focus-ring rounded-lg px-2 py-1 text-sm font-medium text-charcoal-2 hover:text-charcoal transition-colors"
+              >
+                Log in
+              </Link>
+              <ButtonLink href="/login" variant="primary" size="sm">
+                Get started
+              </ButtonLink>
+            </>
+          )}
         </div>
       </nav>
 

@@ -1,20 +1,79 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, type Schema } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
+const cvSchema = {
+  type: SchemaType.OBJECT,
+  required: ["name", "education", "experience", "skills", "languages"],
+  properties: {
+    name: { type: SchemaType.STRING, nullable: true },
+    education: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        required: ["degree", "field", "institution"],
+        properties: {
+          degree: { type: SchemaType.STRING },
+          field: { type: SchemaType.STRING },
+          institution: { type: SchemaType.STRING },
+          year_start: { type: SchemaType.STRING, nullable: true },
+          year_end: { type: SchemaType.STRING, nullable: true },
+        },
+      },
+    },
+    experience: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        required: ["role", "company"],
+        properties: {
+          role: { type: SchemaType.STRING },
+          company: { type: SchemaType.STRING },
+          start: { type: SchemaType.STRING, nullable: true },
+          end: { type: SchemaType.STRING, nullable: true },
+          summary: { type: SchemaType.STRING, nullable: true },
+        },
+      },
+    },
+    skills: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    languages: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        required: ["language", "proficiency"],
+        properties: {
+          language: { type: SchemaType.STRING },
+          proficiency: { type: SchemaType.STRING },
+        },
+      },
+    },
+  },
+};
+
+interface EducationEntry {
+  degree?: string;
+  field?: string;
+  institution?: string;
+  year_start?: string | null;
+  year_end?: string | null;
+}
+
+interface ExperienceEntry {
+  role?: string;
+  company?: string;
+  start?: string | null;
+  end?: string | null;
+  summary?: string | null;
+}
+
+interface LanguageEntry {
+  language?: string;
+  proficiency?: string;
+}
+
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -25,40 +84,30 @@ export async function POST(request: Request) {
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
         { error: "GEMINI_API_KEY not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    const validTypes = new Set([
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ]);
-    if (!validTypes.has(file.type)) {
-      return NextResponse.json(
-        { error: "Only PDF and DOCX files are supported" },
-        { status: 400 },
-      );
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "File must be under 5MB" },
-        { status: 400 },
-      );
-    }
-
-    // Read file as base64
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
 
-    // Determine mime type
     let mimeType = "application/pdf";
     if (file.name.endsWith(".docx")) {
       mimeType =
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        // The SDK's Schema union is awkwardly discriminated by type;
+        // the literal validates at runtime but trips TS narrowing through
+        // nested object/array shapes.
+        responseSchema: cvSchema as Schema,
+        temperature: 0.1,
+      },
+    });
 
     const result = await model.generateContent([
       {
@@ -68,42 +117,51 @@ export async function POST(request: Request) {
         },
       },
       {
-        text: `You are a CV/resume parser. Extract structured information from this CV document and return ONLY valid JSON with no markdown formatting, no code fences, no extra text.
+        text: `You are a CV parser. Extract structured information from the attached CV.
 
-Return exactly this JSON structure:
-{
-  "name": "Full name of the candidate or null if not found",
-  "education": "Highest degree and institution, e.g. 'BSc Computer Science, University of Lisbon' or null",
-  "experience": ["Array of work experiences as short strings, e.g. 'Marketing Intern at Company X (6 months)'"],
-  "skills": ["Array of skills extracted from the CV, e.g. 'Python', 'Data Analysis', 'Project Management'"],
-  "languages": ["Array of languages with proficiency, e.g. 'English (Fluent)', 'Portuguese (Native)'"]
-}
+Field rules:
+- name: candidate's full name as written on the CV. null if absent.
+- education: every degree/diploma. "field" = the subject (e.g. "Computer Science"). Years as "YYYY" or "YYYY-MM". If only one year is given, fill year_end and leave year_start null.
+- experience: every job, internship, or substantive volunteering. "summary" ≤30 words, focus on what they did, not the company description. "end" may be "Present".
+- skills: technical and soft skills explicitly listed or strongly implied by tools/projects. Deduplicate. No proficiency suffix.
+- languages: spoken/written languages with proficiency normalized to one of: Native, Fluent, Advanced, Intermediate, Basic.
 
-Rules:
-- Extract real data from the document. Do not fabricate anything.
-- If a field cannot be determined, use null for strings or empty array [] for arrays.
-- Keep experience entries concise (under 15 words each).
-- Extract ALL skills mentioned, including tools, frameworks, and soft skills.
-- Return ONLY the JSON object, nothing else.`,
+Do not invent data. If a section is genuinely missing, return an empty array.`,
       },
     ]);
 
-    const responseText = result.response.text().trim();
+    const parsed = JSON.parse(result.response.text());
 
-    // Clean the response - strip markdown code fences if present
-    let jsonString = responseText;
-    if (jsonString.startsWith("```")) {
-      jsonString = jsonString.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-    }
+    // Flatten the rich structure back to the flat shape the UI expects.
+    const educationEntries = (parsed.education ?? []) as EducationEntry[];
+    const educationLine = educationEntries[0]
+      ? [
+          educationEntries[0].degree,
+          educationEntries[0].field,
+          educationEntries[0].institution ? "·" : null,
+          educationEntries[0].institution,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .replace(/\s+·\s+/, " · ")
+      : null;
 
-    const parsed = JSON.parse(jsonString);
+    const experienceLines = ((parsed.experience ?? []) as ExperienceEntry[]).map((e) => {
+      const dates = [e.start, e.end].filter(Boolean).join("–");
+      const head = `${e.role ?? ""}${e.company ? ` at ${e.company}` : ""}${dates ? ` (${dates})` : ""}`.trim();
+      return e.summary ? `${head} — ${e.summary}` : head;
+    });
+
+    const languageLines = ((parsed.languages ?? []) as LanguageEntry[]).map(
+      (l) => `${l.language ?? ""}${l.proficiency ? ` (${l.proficiency})` : ""}`.trim(),
+    );
 
     return NextResponse.json({
-      name: parsed.name || null,
-      education: parsed.education || null,
-      experience: Array.isArray(parsed.experience) ? parsed.experience : [],
+      name: parsed.name ?? null,
+      education: educationLine,
+      experience: experienceLines,
       skills: Array.isArray(parsed.skills) ? parsed.skills : [],
-      languages: Array.isArray(parsed.languages) ? parsed.languages : [],
+      languages: languageLines,
     });
   } catch (error) {
     console.error("CV parse error:", error);
@@ -111,7 +169,7 @@ Rules:
       error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     return NextResponse.json(
       { error: `Failed to parse CV: ${detail}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

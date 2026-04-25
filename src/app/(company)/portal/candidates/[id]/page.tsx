@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Check, FileText } from "lucide-react";
+import { ArrowUpRight, Check, FileText } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { Button } from "@/components/ui/Button";
@@ -29,11 +29,13 @@ export default async function CandidateDetailPage({
 
   const { data: company } = await supabase
     .from("companies")
-    .select("id")
+    .select("id, is_admin")
     .eq("user_id", user.id)
     .single();
 
   if (!company) redirect("/dashboard");
+
+  const isAdmin = (company as { is_admin?: boolean }).is_admin === true;
 
   const { data: submission } = await supabase
     .from("submissions")
@@ -46,14 +48,29 @@ export default async function CandidateDetailPage({
   const sub = submission as Record<string, unknown>;
   const studentUser = sub.users as Record<string, unknown> | null;
   const integrity = sub.integrity_signals as Record<string, number> | null;
-  const scoreBreakdown = sub.score_breakdown as Record<string, number> | null;
+  const rawBreakdown = sub.score_breakdown as Record<string, unknown> | null;
 
-  const { data: caseStudy } = await supabase
+  // Two shapes coexist:
+  //   New (LLM): { criteria: { name -> n }, strengths, improvements, writtenFeedback, ... }
+  //   Legacy (mock): { name -> n } (flat numbers)
+  // Detect by presence of `criteria` (or any non-number value).
+  const isNewShape =
+    rawBreakdown !== null &&
+    (typeof rawBreakdown.criteria === "object" || typeof rawBreakdown.writtenFeedback === "string");
+  const criteriaMap = (
+    isNewShape ? (rawBreakdown!.criteria as Record<string, number> | null) : (rawBreakdown as Record<string, number> | null)
+  ) ?? null;
+  const writtenFeedback = isNewShape ? (rawBreakdown!.writtenFeedback as string | undefined) : undefined;
+  const strengths = isNewShape ? ((rawBreakdown!.strengths as string[]) ?? []) : [];
+  const improvements = isNewShape ? ((rawBreakdown!.improvements as string[]) ?? []) : [];
+
+  const csQuery = supabase
     .from("case_studies")
     .select("id, title, career:careers(title)")
-    .eq("id", sub.case_study_id as string)
-    .eq("company_id", company.id)
-    .single();
+    .eq("id", sub.case_study_id as string);
+  const { data: caseStudy } = await (
+    isAdmin ? csQuery.maybeSingle() : csQuery.eq("company_id", company.id).maybeSingle()
+  );
 
   if (!caseStudy) redirect("/portal");
 
@@ -141,11 +158,11 @@ export default async function CandidateDetailPage({
           {/* Main content */}
           <div className="md:col-span-2 space-y-6">
             {/* Score breakdown */}
-            {scoreBreakdown && (
+            {criteriaMap && Object.keys(criteriaMap).length > 0 && (
               <div className="bg-chalk rounded-[14px] shadow-1 p-6">
                 <h2 className="eyebrow mb-4">Score breakdown</h2>
                 <div className="space-y-3">
-                  {Object.entries(scoreBreakdown).map(([criterion, value]) => (
+                  {Object.entries(criteriaMap).map(([criterion, value]) => (
                     <div key={criterion}>
                       <div className="flex items-center justify-between text-sm mb-1.5">
                         <span className="text-charcoal-2">{criterion}</span>
@@ -160,6 +177,51 @@ export default async function CandidateDetailPage({
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* LLM reviewer notes (only present on the new score_breakdown shape) */}
+            {writtenFeedback && (
+              <div className="bg-chalk rounded-[14px] shadow-1 p-6">
+                <h2 className="eyebrow mb-3">Reviewer notes (LLM)</h2>
+                <p className="text-sm text-charcoal-2 leading-relaxed mb-5">{writtenFeedback}</p>
+
+                {(strengths.length > 0 || improvements.length > 0) && (
+                  <div className="grid md:grid-cols-2 gap-5">
+                    {strengths.length > 0 && (
+                      <div>
+                        <div className="eyebrow mb-2 flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-sage" strokeWidth={2} />
+                          Strengths
+                        </div>
+                        <ul className="space-y-1.5">
+                          {strengths.map((s, i) => (
+                            <li key={i} className="text-sm text-charcoal-2 flex gap-2">
+                              <span className="text-sage mt-0.5">•</span>
+                              <span>{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {improvements.length > 0 && (
+                      <div>
+                        <div className="eyebrow mb-2 flex items-center gap-1.5">
+                          <ArrowUpRight className="w-3.5 h-3.5 text-coral" strokeWidth={2} />
+                          Areas to improve
+                        </div>
+                        <ul className="space-y-1.5">
+                          {improvements.map((s, i) => (
+                            <li key={i} className="text-sm text-charcoal-2 flex gap-2">
+                              <span className="text-coral mt-0.5">•</span>
+                              <span>{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

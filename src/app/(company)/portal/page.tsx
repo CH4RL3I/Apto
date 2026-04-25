@@ -65,10 +65,12 @@ export default function CompanyPortalPage() {
       if (!comp) { setLoading(false); return; }
       setCompany(comp);
 
-      const { data: caseStudies } = await supabase
-        .from("case_studies")
-        .select("id, title")
-        .eq("company_id", comp.id);
+      const isAdmin = (comp as { is_admin?: boolean }).is_admin === true;
+
+      const baseCaseQuery = supabase.from("case_studies").select("id, title");
+      const { data: caseStudies } = await (
+        isAdmin ? baseCaseQuery : baseCaseQuery.eq("company_id", comp.id)
+      );
 
       const caseStudyTitles = new Map(
         (caseStudies || []).map((cs: Record<string, unknown>) => [
