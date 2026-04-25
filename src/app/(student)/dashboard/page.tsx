@@ -4,26 +4,19 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   Bell,
-  Bookmark,
-  Briefcase,
-  Building2,
   CalendarDays,
-  Compass,
   FileText,
   Flame,
-  Home as HomeIcon,
   Leaf,
-  MessageCircle,
   Search,
-  Settings,
   Sparkles,
   Target,
   UserCircle2,
-  Users,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
+import { StudentSidebar } from "@/components/StudentSidebar";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
 
 type StatusVariant = "mist" | "sage" | "sageSolid" | "coral" | "coralSolid";
@@ -35,15 +28,6 @@ const statusVariant: Record<string, StatusVariant> = {
   shortlisted: "sageSolid",
   rejected: "coralSolid",
 };
-
-const navigationItems = [
-  { label: "Home", href: "/dashboard", icon: HomeIcon, active: true },
-  { label: "Discover", href: "/results", icon: Compass },
-  { label: "Challenges", href: "/challenges", icon: Briefcase },
-  { label: "Companies", href: "/companies", icon: Building2 },
-  { label: "Connections", href: "/dashboard#invitations", icon: Users },
-  { label: "Messages", href: "/dashboard#invitations", icon: MessageCircle },
-];
 
 const recommendedChallenges = [
   {
@@ -182,42 +166,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-pale-sage brand-dotted px-3 py-3 md:px-6 md:py-6">
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[26px] border border-sage-mist-2 bg-chalk shadow-3 lg:grid lg:min-h-[calc(100vh-3rem)] lg:grid-cols-[238px_1fr] apto-dashboard-shell">
-        <aside className="hidden border-r border-sage-mist-2 bg-chalk/86 p-5 lg:flex lg:flex-col">
-          <Link href="/" aria-label="Apto home" className="focus-ring mb-8 inline-flex w-fit items-center rounded-xl">
-            <Logo height={34} priority />
-          </Link>
-
-          <nav className="space-y-1">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`focus-ring flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-semibold transition-colors ${
-                    item.active
-                      ? "border-l-4 border-sage bg-pale-sage text-sage"
-                      : "text-charcoal-2 hover:bg-pale-sage hover:text-charcoal"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" strokeWidth={1.75} />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="mt-auto space-y-1">
-            <Link href="#submissions" className="focus-ring flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-semibold text-charcoal-2 hover:bg-pale-sage hover:text-charcoal">
-              <Bookmark className="h-4 w-4" strokeWidth={1.75} />
-              Bookmarks
-            </Link>
-            <Link href="/results" className="focus-ring flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-semibold text-charcoal-2 hover:bg-pale-sage hover:text-charcoal">
-              <Settings className="h-4 w-4" strokeWidth={1.75} />
-              Settings
-            </Link>
-          </div>
-        </aside>
+        <StudentSidebar active="home" />
 
         <main className="min-w-0 p-4 md:p-6 lg:p-7">
           <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

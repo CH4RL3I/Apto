@@ -8,6 +8,7 @@ import { CASE_STUDIES, type CaseStudy } from "@/lib/questionnaire/case-studies";
 import type { Submission } from "@/types";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
+import { Markdown } from "@/lib/markdown";
 
 type ScoringStatus = "idle" | "scoring" | "done" | "failed";
 
@@ -267,9 +268,9 @@ export default function ExamPage() {
           <div className="w-20 h-20 rounded-full bg-chalk shadow-2 flex items-center justify-center mx-auto mb-6">
             <Sparkles className="w-9 h-9 text-sage animate-pulse" strokeWidth={1.75} />
           </div>
-          <div className="eyebrow mb-2">Reviewing</div>
+          <div className="eyebrow mb-2">Evaluating</div>
           <h1 className="text-2xl md:text-3xl font-bold text-charcoal mb-3 tracking-tight">
-            Gemini is reviewing your answer...
+            Your submission is being evaluated...
           </h1>
           <p className="text-charcoal-2 leading-relaxed">
             This usually takes 10–20 seconds. Please don&apos;t close the tab.
@@ -541,9 +542,9 @@ export default function ExamPage() {
           <summary className="text-sm text-dim cursor-pointer hover:text-pale-sage transition-colors">
             View brief
           </summary>
-          <pre className="mt-3 text-sm text-dim leading-relaxed whitespace-pre-wrap font-sans max-w-3xl">
-            {caseStudy?.body}
-          </pre>
+          <div className="mt-3 max-w-3xl rounded-[12px] bg-chalk p-5 text-sm leading-relaxed shadow-1">
+            <Markdown source={(caseStudy?.body ?? "").replace(/^\s*<img\b[^>]*>\s*\n?/i, "")} />
+          </div>
         </details>
       </div>
 

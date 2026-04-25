@@ -9,9 +9,9 @@ import {
 } from "@/lib/questionnaire/matching";
 import type { Answers } from "@/lib/questionnaire/questions";
 import { resetQuestionnaire } from "../questionnaire/actions";
-import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { StudentShell } from "@/components/StudentSidebar";
 
 export default async function ResultsPage() {
   const supabase = await createClient();
@@ -40,22 +40,8 @@ export default async function ResultsPage() {
   const topCaseId = matchesWithCases[0]?.cases[0]?.id;
 
   return (
-    <div className="min-h-screen bg-pale-sage">
-      <nav className="border-b border-sage-mist-2 bg-chalk">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" aria-label="Apto home" className="inline-flex items-center">
-            <Logo height={28} priority />
-          </Link>
-          <Link
-            href="/dashboard"
-            className="text-sm text-charcoal-2 hover:text-charcoal transition-colors"
-          >
-            Dashboard
-          </Link>
-        </div>
-      </nav>
-
-      <div className="max-w-3xl mx-auto px-6 py-12">
+    <StudentShell active="discover">
+      <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10 fade-in">
           <div className="eyebrow mb-3">Your matches</div>
           <h1 className="text-3xl md:text-4xl font-bold text-charcoal tracking-tight" style={{ textWrap: "balance" }}>
@@ -195,6 +181,6 @@ export default async function ResultsPage() {
           )}
         </div>
       </div>
-    </div>
+    </StudentShell>
   );
 }

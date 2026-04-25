@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { Clock, Sun } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
 import { daySnapshot } from "@/lib/questionnaire/matching";
 import { Markdown } from "@/lib/markdown";
-import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
+import { StudentShell } from "@/components/StudentSidebar";
 
 export default async function CaseStudyBriefPage({
   params,
@@ -40,17 +39,8 @@ export default async function CaseStudyBriefPage({
   const dayLine = daySnapshot(cs);
 
   return (
-    <div className="min-h-screen bg-pale-sage">
-      <nav className="border-b border-sage-mist-2 bg-chalk">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" aria-label="Apto home" className="inline-flex items-center"><Logo height={28} priority /></Link>
-          <Link href="/results" className="text-sm font-medium text-charcoal-2 hover:text-charcoal transition-colors">
-            &larr; Back to matches
-          </Link>
-        </div>
-      </nav>
-
-      <div className="max-w-3xl mx-auto px-6 py-12">
+    <StudentShell active="challenges">
+      <div className="max-w-3xl mx-auto">
         <div className="mb-6">
           <div className="eyebrow mb-2">Case study</div>
           <h1 className="text-3xl md:text-[34px] font-bold text-charcoal tracking-tight" style={{ textWrap: "balance" }}>{cs.title}</h1>
@@ -140,6 +130,6 @@ export default async function CaseStudyBriefPage({
           </p>
         </div>
       </div>
-    </div>
+    </StudentShell>
   );
 }
