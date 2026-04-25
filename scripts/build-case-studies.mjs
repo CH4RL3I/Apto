@@ -10,7 +10,10 @@ const SRC_DIRS = [
   "/Users/emiliogappa/Desktop/apto case studies/case studies 2",
 ];
 const OUT_TS = "/Users/emiliogappa/Desktop/Apto/src/lib/questionnaire/case-studies.ts";
-const OUT_SQL = "/Users/emiliogappa/Desktop/Apto/supabase/004_case_study_seed.sql";
+// supabase/seed.sql is run by `supabase db reset` for local dev. For the
+// remote DB, paste the generated file into the Supabase SQL Editor — it's
+// idempotent (on conflict ... do update) so re-running is safe.
+const OUT_SQL = "/Users/emiliogappa/Desktop/Apto/supabase/seed.sql";
 
 function parseFrontmatter(text) {
   const m = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);

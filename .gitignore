@@ -12,3 +12,8 @@ tsconfig.tsbuildinfo
 
 # macOS / iCloud sync duplicates (e.g. "foo 2.svg")
 * 2.*
+* 3.*
+
+# Supabase CLI local cache
+supabase/.temp/
+supabase/.branches/
