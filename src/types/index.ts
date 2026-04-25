@@ -10,7 +10,6 @@ export interface User {
 export interface Profile {
   user_id: string;
   questionnaire_answers: Record<string, unknown>;
-  match_vector: number[];
   completed_at: string | null;
 }
 
@@ -92,44 +91,3 @@ export interface Invitation {
   company?: Company;
   submission?: Submission;
 }
-
-export interface MatchedCareer extends Career {
-  matchScore: number;
-  explanation: string;
-}
-
-export type QuestionType = "single-select" | "multi-select" | "slider";
-
-export interface QuestionOption {
-  label: string;
-  value: string;
-  dimensions: Partial<Record<Dimension, number>>;
-}
-
-export interface Question {
-  id: number;
-  question: string;
-  type: QuestionType;
-  options?: QuestionOption[];
-  sliderConfig?: {
-    min: number;
-    max: number;
-    minLabel: string;
-    maxLabel: string;
-    dimensions: {
-      low: Partial<Record<Dimension, number>>;
-      high: Partial<Record<Dimension, number>>;
-    };
-  };
-  maxSelections?: number;
-}
-
-export type Dimension =
-  | "analytical"
-  | "people"
-  | "creative"
-  | "strategic"
-  | "autonomous"
-  | "risk_tolerant"
-  | "collaborative"
-  | "structured";
