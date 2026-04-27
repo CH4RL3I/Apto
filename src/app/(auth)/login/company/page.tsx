@@ -2,14 +2,12 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 
 export default function CompanyLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,8 +27,7 @@ export default function CompanyLoginPage() {
       setError(authError.message);
       return;
     }
-    router.push("/portal");
-    router.refresh();
+    window.location.assign("/portal");
   }
 
   return (

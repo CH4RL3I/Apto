@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
@@ -9,7 +8,6 @@ import { createClient } from "@/lib/supabase/client";
 import { signupStudent } from "./actions";
 
 export default function StudentSignupPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,8 +44,7 @@ export default function StudentSignupPage() {
       return;
     }
     if (res.redirect) {
-      router.push(res.redirect);
-      router.refresh();
+      window.location.assign(res.redirect);
     } else {
       setConfirmation("Check your email to confirm your account, then sign in.");
     }

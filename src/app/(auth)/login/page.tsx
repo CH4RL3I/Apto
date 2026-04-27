@@ -2,13 +2,11 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 
 export default function StudentLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,8 +40,10 @@ export default function StudentLoginPage() {
       setError(authError.message);
       return;
     }
-    router.push("/dashboard");
-    router.refresh();
+    // Hard reload so the auth cookie set by signInWithPassword is on the
+    // request the middleware sees. Soft router.push has a race that
+    // sometimes makes the middleware miss the cookie and bounce back.
+    window.location.assign("/dashboard");
   }
 
   return (

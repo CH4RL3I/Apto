@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -9,7 +8,6 @@ import { Button } from "@/components/ui/Button";
 import { signupCompany } from "../actions";
 
 export default function CompanySignupPage() {
-  const router = useRouter();
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,8 +30,7 @@ export default function CompanySignupPage() {
       return;
     }
     if (res.redirect) {
-      router.push(res.redirect);
-      router.refresh();
+      window.location.assign(res.redirect);
     } else {
       setConfirmation("Check your email to confirm your account, then sign in.");
     }
