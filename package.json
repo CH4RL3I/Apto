@@ -9,6 +9,9 @@
     "lint": "eslint",
     "build:case-studies": "node scripts/build-case-studies.mjs"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/ssr": "^0.10.2",
