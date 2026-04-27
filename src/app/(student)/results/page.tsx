@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getMatches,
   findCaseStudiesForJob,
+  type FormatTier,
   type ParsedCV,
 } from "@/lib/questionnaire/matching";
 import type { Answers } from "@/lib/questionnaire/questions";
@@ -13,7 +14,24 @@ import { Pill } from "@/components/ui/Pill";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { StudentShell } from "@/components/StudentSidebar";
 
-export default async function ResultsPage() {
+const TIER_OPTIONS: { value: FormatTier | "all"; label: string; minutes: string }[] = [
+  { value: "all", label: "All", minutes: "any length" },
+  { value: "taster", label: "Taster", minutes: "10–25 min" },
+  { value: "mid-form", label: "Mid-form", minutes: "40–60 min" },
+  { value: "deep-dive", label: "Deep dive", minutes: "3–4 hr" },
+];
+
+function isTier(value: string | undefined): value is FormatTier {
+  return value === "taster" || value === "mid-form" || value === "deep-dive";
+}
+
+export default async function ResultsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tier?: string }>;
+}) {
+  const params = await searchParams;
+  const activeTier: FormatTier | null = isTier(params.tier) ? params.tier : null;
   const supabase = await createClient();
 
   const {
@@ -35,7 +53,7 @@ export default async function ResultsPage() {
   const hasMatches = matches.length > 0 && matches[0].score > 0;
   const matchesWithCases = matches.map((m) => ({
     ...m,
-    cases: findCaseStudiesForJob(m, 2),
+    cases: findCaseStudiesForJob(m, 2, activeTier),
   }));
   const topCaseId = matchesWithCases[0]?.cases[0]?.id;
 
@@ -62,6 +80,35 @@ export default async function ResultsPage() {
             )}
           </p>
         </header>
+
+        {hasMatches && (
+          <div className="mb-6 flex flex-wrap items-center gap-2 justify-center">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-charcoal-2 mr-1">
+              Time available:
+            </span>
+            {TIER_OPTIONS.map((opt) => {
+              const isActive =
+                opt.value === "all" ? !activeTier : activeTier === opt.value;
+              const href = opt.value === "all" ? "/results" : `/results?tier=${opt.value}`;
+              return (
+                <Link
+                  key={opt.value}
+                  href={href}
+                  className={`focus-ring rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    isActive
+                      ? "border-sage bg-sage text-chalk shadow-1"
+                      : "border-sage-mist-2 bg-chalk text-charcoal-2 hover:border-sage hover:text-charcoal"
+                  }`}
+                >
+                  {opt.label}{" "}
+                  <span className={`font-normal ${isActive ? "text-pale-sage" : "text-charcoal-3"}`}>
+                    · {opt.minutes}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         {hasMatches ? (
           <div className="space-y-5">
@@ -101,19 +148,40 @@ export default async function ResultsPage() {
                     </Pill>
                   </div>
 
-                  {job.reasons.length > 0 && (
-                    <ul className="mt-4 space-y-1.5">
-                      {job.reasons.slice(0, 3).map((reason, i) => (
-                        <li
-                          key={i}
-                          className="text-sm text-charcoal-2 flex gap-2 items-start"
-                        >
-                          <span className="text-sage mt-0.5 font-bold">•</span>
-                          <span>{reason}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {(() => {
+                    // CV-derived reasons start with "Your " (formatCvReason).
+                    // Surface them as a separate coral chip so the algorithm's
+                    // CV signal is legible alongside the questionnaire reasons.
+                    const cvReasons = job.reasons.filter((r) => r.startsWith("Your "));
+                    const fitReasons = job.reasons.filter((r) => !r.startsWith("Your "));
+                    return (
+                      <>
+                        {cvReasons.length > 0 && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {cvReasons.map((reason, i) => (
+                              <Pill key={`cv-${i}`} variant="coral" size="sm">
+                                <span className="font-semibold mr-1">CV match:</span>
+                                {reason.replace(/^Your\s+/, "").replace(/\s+(background fits|aligns)$/, "")}
+                              </Pill>
+                            ))}
+                          </div>
+                        )}
+                        {fitReasons.length > 0 && (
+                          <ul className="mt-4 space-y-1.5">
+                            {fitReasons.slice(0, 3).map((reason, i) => (
+                              <li
+                                key={i}
+                                className="text-sm text-charcoal-2 flex gap-2 items-start"
+                              >
+                                <span className="text-sage mt-0.5 font-bold">•</span>
+                                <span>{reason}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   {job.cases.length > 0 && (
                     <div className="mt-5 space-y-2">

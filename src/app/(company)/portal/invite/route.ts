@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { sendInviteEmail } from "@/lib/email";
+import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
+import { track } from "@/lib/posthog";
 
 async function getSubmissionId(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
@@ -64,7 +67,7 @@ export async function POST(request: Request) {
 
   const { data: company } = await supabase
     .from("companies")
-    .select("id")
+    .select("id, name")
     .eq("user_id", user.id)
     .single();
 
@@ -101,13 +104,15 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (!existing) {
+    const inviteMessage =
+      "We were impressed by your case study submission and would like to invite you for an interview!";
+
     const { error: inviteError } = await supabase.from("invitations").insert({
       submission_id: submission.id,
       user_id: submission.user_id,
       company_id: company.id,
       status: "pending",
-      message:
-        "We were impressed by your case study submission and would like to invite you for an interview!",
+      message: inviteMessage,
     });
 
     if (inviteError) {
@@ -122,6 +127,31 @@ export async function POST(request: Request) {
     if (updateError) {
       return respond(request, wantsJson, 500, updateError.message);
     }
+
+    // Best-effort email + analytics — failures here don't roll back the invite.
+    const { data: studentRow } = await supabase
+      .from("users")
+      .select("email, name")
+      .eq("id", submission.user_id)
+      .single();
+
+    const caseStudyTitle =
+      CASE_STUDIES.find((c) => c.id === submission.case_study_id)?.title ?? "your case study";
+
+    if (studentRow?.email) {
+      await sendInviteEmail({
+        to: studentRow.email as string,
+        studentName: (studentRow.name as string | null) ?? null,
+        companyName: (company.name as string) ?? "A company",
+        caseStudyTitle,
+        message: inviteMessage,
+      });
+    }
+
+    await track(user.id, "invitation_sent", {
+      case_study_id: submission.case_study_id,
+      submission_id: submission.id,
+    });
   }
 
   if (wantsJson) {

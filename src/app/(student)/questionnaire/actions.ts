@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { track } from "@/lib/posthog";
 import type { Answers } from "@/lib/questionnaire/questions";
 
 export async function submitQuestionnaire(answers: Answers) {
@@ -18,6 +19,11 @@ export async function submitQuestionnaire(answers: Answers) {
       completed_at: new Date().toISOString(),
     })
     .eq("user_id", user.id);
+
+  await track(user.id, "questionnaire_completed", {
+    fields_count: answers.fields?.length ?? 0,
+    industries_count: answers.industries?.length ?? 0,
+  });
 
   redirect("/results");
 }

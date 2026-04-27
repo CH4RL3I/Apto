@@ -83,6 +83,40 @@ export default function ExamPage() {
 
     setSubmission(sub as Submission);
 
+    // Best-effort CV snapshot: copy the current CV file into the
+    // submission-cvs bucket so the company always sees the version that
+    // was attached at submission time, even if the student updates their
+    // profile CV later. Failures fall back to the live URL pointer.
+    if (profile?.cv_url) {
+      try {
+        const res = await fetch(profile.cv_url);
+        if (res.ok) {
+          const blob = await res.blob();
+          const ext = (profile.cv_url.split(".").pop() ?? "pdf").split("?")[0].slice(0, 8);
+          const path = `${user.id}/${sub.id}.${ext}`;
+          const { error: uploadErr } = await supabase.storage
+            .from("submission-cvs")
+            .upload(path, blob, {
+              contentType: blob.type || "application/pdf",
+              upsert: true,
+            });
+          if (!uploadErr) {
+            const { data: urlData } = supabase.storage
+              .from("submission-cvs")
+              .getPublicUrl(path);
+            if (urlData?.publicUrl) {
+              await supabase
+                .from("submissions")
+                .update({ cv_snapshot_url: urlData.publicUrl })
+                .eq("id", sub.id);
+            }
+          }
+        }
+      } catch {
+        // Best-effort — leave cv_snapshot_url as the live cv_url fallback.
+      }
+    }
+
     // Try fullscreen
     try {
       await document.documentElement.requestFullscreen();

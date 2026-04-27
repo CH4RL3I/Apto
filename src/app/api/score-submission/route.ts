@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, SchemaType, type Schema } from "@google/generative-
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
+import { track } from "@/lib/posthog";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -175,6 +176,11 @@ Be honest. The candidate benefits from a real assessment.`;
         status: "scored",
       })
       .eq("id", submissionId);
+
+    await track(user.id, "case_study_scored", {
+      case_study_id: caseStudyId,
+      score: overall,
+    });
 
     return NextResponse.json({
       ok: true,

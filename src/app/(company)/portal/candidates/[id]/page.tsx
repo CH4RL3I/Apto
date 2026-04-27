@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Check, FileText } from "lucide-react";
+import {
+  integrityVerdict,
+  INTEGRITY_LABEL,
+  INTEGRITY_DESCRIPTION,
+  type IntegritySignals,
+} from "@/lib/integrity";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { Button } from "@/components/ui/Button";
@@ -234,35 +240,55 @@ export default async function CandidateDetailPage({
             </div>
 
             {/* Integrity report */}
-            <div className="bg-chalk rounded-[14px] shadow-1 p-6">
-              <h2 className="eyebrow mb-4">Integrity report</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-4 rounded-[10px] bg-pale-sage">
-                  <div className={`text-2xl font-bold stat-num ${integrity?.tab_switches ? "text-coral-700" : "text-sage"}`}>
-                    {integrity?.tab_switches || 0}
+            {(() => {
+              const verdict = integrityVerdict(integrity as IntegritySignals | null);
+              const verdictClass =
+                verdict === "green"
+                  ? "bg-pale-sage border-sage text-sage-700"
+                  : verdict === "yellow"
+                  ? "bg-coral-100 border-coral text-coral-700"
+                  : "bg-coral-200 border-coral text-coral-800";
+              const dotClass =
+                verdict === "green" ? "bg-sage" : verdict === "yellow" ? "bg-coral" : "bg-coral-700";
+              return (
+                <div className="bg-chalk rounded-[14px] shadow-1 p-6">
+                  <h2 className="eyebrow mb-4">Integrity report</h2>
+                  <div className={`mb-5 flex items-center gap-3 rounded-[12px] border-2 px-4 py-3 ${verdictClass}`}>
+                    <span className={`flex h-2.5 w-2.5 rounded-full ${dotClass}`} />
+                    <div>
+                      <div className="text-sm font-bold tracking-tight">{INTEGRITY_LABEL[verdict]}</div>
+                      <div className="text-xs opacity-80">{INTEGRITY_DESCRIPTION[verdict]}</div>
+                    </div>
                   </div>
-                  <div className="eyebrow mt-1">Tab switches</div>
-                </div>
-                <div className="text-center p-4 rounded-[10px] bg-pale-sage">
-                  <div className={`text-2xl font-bold stat-num ${integrity?.paste_count ? "text-coral-700" : "text-sage"}`}>
-                    {integrity?.paste_count || 0}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center p-4 rounded-[10px] bg-pale-sage">
+                      <div className={`text-2xl font-bold stat-num ${integrity?.tab_switches ? "text-coral-700" : "text-sage"}`}>
+                        {integrity?.tab_switches || 0}
+                      </div>
+                      <div className="eyebrow mt-1">Tab switches</div>
+                    </div>
+                    <div className="text-center p-4 rounded-[10px] bg-pale-sage">
+                      <div className={`text-2xl font-bold stat-num ${integrity?.paste_count ? "text-coral-700" : "text-sage"}`}>
+                        {integrity?.paste_count || 0}
+                      </div>
+                      <div className="eyebrow mt-1">Paste events</div>
+                    </div>
+                    <div className="text-center p-4 rounded-[10px] bg-pale-sage">
+                      <div className={`text-2xl font-bold stat-num ${integrity?.fullscreen_exits ? "text-coral-700" : "text-sage"}`}>
+                        {integrity?.fullscreen_exits || 0}
+                      </div>
+                      <div className="eyebrow mt-1">Fullscreen exits</div>
+                    </div>
+                    <div className="text-center p-4 rounded-[10px] bg-pale-sage">
+                      <div className="text-2xl font-bold text-charcoal stat-num">
+                        {integrity?.time_spent_seconds ? `${Math.round(integrity.time_spent_seconds / 60)}m` : "N/A"}
+                      </div>
+                      <div className="eyebrow mt-1">Time spent</div>
+                    </div>
                   </div>
-                  <div className="eyebrow mt-1">Paste events</div>
                 </div>
-                <div className="text-center p-4 rounded-[10px] bg-pale-sage">
-                  <div className={`text-2xl font-bold stat-num ${integrity?.fullscreen_exits ? "text-coral-700" : "text-sage"}`}>
-                    {integrity?.fullscreen_exits || 0}
-                  </div>
-                  <div className="eyebrow mt-1">Fullscreen exits</div>
-                </div>
-                <div className="text-center p-4 rounded-[10px] bg-pale-sage">
-                  <div className="text-2xl font-bold text-charcoal stat-num">
-                    {integrity?.time_spent_seconds ? `${Math.round(integrity.time_spent_seconds / 60)}m` : "N/A"}
-                  </div>
-                  <div className="eyebrow mt-1">Time spent</div>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
           </div>
 
           {/* Sidebar */}

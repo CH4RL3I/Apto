@@ -8,6 +8,11 @@ import Image from "next/image";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import {
+  integrityVerdict,
+  INTEGRITY_LABEL,
+  type IntegritySignals,
+} from "@/lib/integrity";
 
 interface SubmissionRow {
   id: string;
@@ -362,24 +367,16 @@ export default function CompanyPortalPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5">
-                          {integrity && (integrity.tab_switches > 0 || integrity.paste_count > 0) ? (
-                            <>
-                              {integrity.tab_switches > 0 && (
-                                <Pill variant="coral" size="sm">
-                                  {integrity.tab_switches} tabs
-                                </Pill>
-                              )}
-                              {integrity.paste_count > 0 && (
-                                <Pill variant="coral" size="sm">
-                                  {integrity.paste_count} pastes
-                                </Pill>
-                              )}
-                            </>
-                          ) : (
-                            <Pill variant="sage" size="sm">Clean</Pill>
-                          )}
-                        </div>
+                        {(() => {
+                          const verdict = integrityVerdict(integrity as IntegritySignals | null);
+                          const variant =
+                            verdict === "green" ? "sage" : verdict === "yellow" ? "coral" : "coralSolid";
+                          return (
+                            <Pill variant={variant} size="sm">
+                              {INTEGRITY_LABEL[verdict]}
+                            </Pill>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         {sub.cv_snapshot_url ? (

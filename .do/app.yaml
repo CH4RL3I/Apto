@@ -25,3 +25,24 @@ services:
       - key: GEMINI_API_KEY
         scope: RUN_TIME
         type: SECRET
+      - key: RESEND_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: RESEND_FROM
+        scope: RUN_TIME
+        type: GENERAL
+      - key: NEXT_PUBLIC_APP_URL
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+      - key: NEXT_PUBLIC_SENTRY_DSN
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+      - key: SENTRY_DSN
+        scope: RUN_TIME
+        type: SECRET
+      - key: NEXT_PUBLIC_POSTHOG_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+      - key: NEXT_PUBLIC_POSTHOG_HOST
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL

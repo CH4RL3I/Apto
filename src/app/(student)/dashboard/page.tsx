@@ -7,8 +7,6 @@ import {
   CalendarDays,
   FileText,
   Flame,
-  Leaf,
-  Search,
   Sparkles,
   Target,
   UserCircle2,
@@ -17,7 +15,15 @@ import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
 import { StudentSidebar } from "@/components/StudentSidebar";
+import { DashboardSearch } from "@/components/DashboardSearch";
+import { RetryScoringButton } from "@/components/RetryScoringButton";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
+import {
+  getMatches,
+  findCaseStudiesForJob,
+  type ParsedCV,
+} from "@/lib/questionnaire/matching";
+import type { Answers } from "@/lib/questionnaire/questions";
 import { InvitationActions } from "./InvitationActions";
 
 type StatusVariant = "mist" | "sage" | "sageSolid" | "coral" | "coralSolid";
@@ -29,33 +35,6 @@ const statusVariant: Record<string, StatusVariant> = {
   shortlisted: "sageSolid",
   rejected: "coralSolid",
 };
-
-const recommendedChallenges = [
-  {
-    title: "Market Entry Analysis for Sustainable Fashion",
-    company: "EcoThread",
-    skill: "Strategy",
-    duration: "4 weeks",
-    difficulty: "Beginner",
-    icon: Leaf,
-  },
-  {
-    title: "Product Strategy for Gen Z Education",
-    company: "EduSpark",
-    skill: "Product",
-    duration: "4 weeks",
-    difficulty: "Intermediate",
-    icon: Sparkles,
-  },
-  {
-    title: "User Research for Finance App",
-    company: "FinEdge",
-    skill: "Research",
-    duration: "4 weeks",
-    difficulty: "Beginner",
-    icon: Target,
-  },
-];
 
 const upcomingEvents = [
   { title: "Case Prep Workshop", host: "BCG", time: "May 24 - 6:00 PM" },
@@ -152,6 +131,46 @@ export default async function DashboardPage() {
     });
   }
 
+  // Derive 3 recommended case studies from the student's matches.
+  // Skip cases the student has already submitted.
+  const submittedCaseIds = new Set(
+    submissionRows.map((s: Record<string, unknown>) => s.case_study_id as string),
+  );
+  const answers = (profile?.questionnaire_answers ?? {}) as Answers;
+  const cv = (profile?.cv_parsed ?? null) as ParsedCV | null;
+  const topMatches = getMatches(answers, cv);
+  const recommendedChallenges = (() => {
+    const seen = new Set<string>();
+    const picks: {
+      id: string;
+      title: string;
+      company: string;
+      logoUrl: string;
+      duration: string;
+      minutes: number;
+      skill: string;
+    }[] = [];
+    for (const job of topMatches) {
+      for (const cs of findCaseStudiesForJob(job, 3)) {
+        if (seen.has(cs.id) || submittedCaseIds.has(cs.id)) continue;
+        seen.add(cs.id);
+        picks.push({
+          id: cs.id,
+          title: cs.title,
+          company: cs.companyName ?? job.title,
+          logoUrl: cs.logoUrl,
+          duration:
+            cs.duration === "short" ? "Taster" : cs.duration === "long" ? "Deep dive" : "Mid-form",
+          minutes: cs.estimatedMinutes,
+          skill: cs.skillsTested[0] ?? job.fields[0] ?? "Case study",
+        });
+        if (picks.length >= 3) break;
+      }
+      if (picks.length >= 3) break;
+    }
+    return picks;
+  })();
+
   const progressCards = [
     {
       label: "Learning streak",
@@ -188,17 +207,7 @@ export default async function DashboardPage() {
               <Pill variant="sage" size="sm">Student dashboard</Pill>
             </div>
 
-            <div className="flex w-full max-w-xl items-center gap-2 rounded-[14px] border border-sage-mist-2 bg-chalk px-3 py-2.5 shadow-1">
-              <Search className="h-4 w-4 text-charcoal-3" strokeWidth={1.75} />
-              <label htmlFor="dashboard-search" className="sr-only">
-                Search challenges, companies, and skills
-              </label>
-              <input
-                id="dashboard-search"
-                placeholder="Search challenges, companies, skills..."
-                className="w-full bg-transparent text-sm text-charcoal placeholder:text-charcoal-3 focus:outline-none"
-              />
-            </div>
+            <DashboardSearch />
 
             <div className="flex items-center gap-3 self-end md:self-auto">
               <button className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full border border-sage-mist-2 bg-chalk text-charcoal-2 shadow-1 transition-colors hover:bg-pale-sage">
@@ -265,35 +274,46 @@ export default async function DashboardPage() {
                   </Link>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  {recommendedChallenges.map((challenge) => {
-                    const Icon = challenge.icon;
-                    return (
+                {recommendedChallenges.length === 0 ? (
+                  <div className="rounded-[16px] border border-sage-mist-2 bg-chalk p-6 text-sm text-charcoal-2 shadow-1">
+                    You&apos;ve worked through your top matches. Browse the full case-study library for more.
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {recommendedChallenges.map((challenge) => (
                       <Link
-                        key={challenge.title}
-                        href="/results"
+                        key={challenge.id}
+                        href={`/case-studies/${challenge.id}`}
                         className="focus-ring group relative overflow-hidden rounded-[16px] bg-sage p-5 text-chalk shadow-1 transition-all hover:-translate-y-0.5 hover:shadow-2"
                       >
                         <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full border-[26px] border-chalk/10" />
-                        <Pill variant="coralSolid" size="sm">New</Pill>
-                        <h3 className="relative mt-4 min-h-[86px] text-base font-bold leading-snug tracking-tight">
+                        <Pill variant="coralSolid" size="sm">For you</Pill>
+                        <h3 className="relative mt-4 min-h-[72px] text-base font-bold leading-snug tracking-tight">
                           {challenge.title}
                         </h3>
-                        <div className="relative mt-4 flex items-center gap-2 text-sm text-pale-sage">
-                          <Icon className="h-4 w-4" strokeWidth={1.75} />
-                          {challenge.company}
+                        <div className="relative mt-4 flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-chalk shadow-1">
+                            <Image
+                              src={challenge.logoUrl}
+                              alt={`${challenge.company} logo`}
+                              width={24}
+                              height={24}
+                              className="object-contain"
+                            />
+                          </span>
+                          <span className="text-sm text-pale-sage">{challenge.company}</span>
                         </div>
                         <div className="relative mt-5 flex flex-wrap items-center gap-2 text-[11px] text-chalk/75">
                           <span>{challenge.duration}</span>
-                          <span aria-hidden="true">-</span>
+                          <span aria-hidden="true">·</span>
+                          <span>{challenge.minutes} min</span>
+                          <span aria-hidden="true">·</span>
                           <span>{challenge.skill}</span>
-                          <span aria-hidden="true">-</span>
-                          <span>{challenge.difficulty}</span>
                         </div>
                       </Link>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section>
@@ -460,6 +480,8 @@ export default async function DashboardPage() {
                               <ButtonLink href={`/case-studies/${sub.case_study_id as string}/exam`} variant="ghost" size="sm">
                                 Resume
                               </ButtonLink>
+                            ) : sub.status === "submitted" && sub.score == null ? (
+                              <RetryScoringButton submissionId={sub.id as string} />
                             ) : (
                               <Pill variant="mist" size="sm">Portfolio proof</Pill>
                             )}

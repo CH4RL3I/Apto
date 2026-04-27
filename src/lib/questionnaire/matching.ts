@@ -788,15 +788,26 @@ function scoreCaseStudyForJob(cs: CaseStudy, job: Job): number {
   return score;
 }
 
+export type FormatTier = "taster" | "mid-form" | "deep-dive";
+
+const TIER_TO_DURATION: Record<FormatTier, CaseStudy["duration"]> = {
+  taster: "short",
+  "mid-form": "medium",
+  "deep-dive": "long",
+};
+
 export function findCaseStudiesForJob(
   job: Job,
   limit = 2,
+  tier?: FormatTier | null,
 ): (CaseStudy & { fitScore: number })[] {
+  const targetDuration = tier ? TIER_TO_DURATION[tier] : null;
   return CASE_STUDIES.map((cs) => ({
     ...cs,
     fitScore: scoreCaseStudyForJob(cs, job),
   }))
     .filter((cs) => cs.fitScore > 0)
+    .filter((cs) => !targetDuration || cs.duration === targetDuration)
     .sort((a, b) => b.fitScore - a.fitScore)
     .slice(0, limit);
 }
