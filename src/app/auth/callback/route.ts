@@ -1,7 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function GET(request: Request) {
+// Same fallback pattern as supabase/{client,server}.ts — keeps preview
+// builds without env vars from blowing up.
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://placeholder.supabase.co";
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "placeholder-anon-key";
+
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/upload-cv";
@@ -10,7 +17,29 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  const supabase = await createClient();
+  // Bind the Supabase client to a single response object so the session
+  // cookies set by exchangeCodeForSession land on the exact redirect we
+  // return. Setting them via cookies() from next/headers raced with the
+  // middleware on the destination route and bounced users back to /login —
+  // the "log in twice" symptom for Google OAuth.
+  const response = NextResponse.redirect(`${origin}${next}`);
+
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
+      },
+    },
+  });
+
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     return NextResponse.redirect(`${origin}/login`);
@@ -22,6 +51,14 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.redirect(`${origin}/login`);
   }
+
+  // Resolve the destination, then redirect *the same response object* so the
+  // cookies set above stay attached. Mutating Location is the supported way
+  // to do this — building a new NextResponse.redirect would drop them.
+  const redirectTo = (path: string) => {
+    response.headers.set("Location", `${origin}${path}`);
+    return response;
+  };
 
   // OAuth path: ensure a public.users + profiles row exists. We always
   // default to role='student' for OAuth — companies sign up via the
@@ -44,11 +81,11 @@ export async function GET(request: Request) {
       role: "student",
     });
     await supabase.from("profiles").insert({ user_id: user.id });
-    return NextResponse.redirect(`${origin}${next}`);
+    return redirectTo(next);
   }
 
   if (existingUser.role === "company") {
-    return NextResponse.redirect(`${origin}/portal`);
+    return redirectTo("/portal");
   }
 
   const { data: profile } = await supabase
@@ -58,9 +95,7 @@ export async function GET(request: Request) {
     .single();
 
   if (profile?.completed_at) {
-    return NextResponse.redirect(`${origin}/dashboard`);
+    return redirectTo("/dashboard");
   }
-  return NextResponse.redirect(
-    `${origin}${profile?.cv_url ? "/questionnaire" : "/upload-cv"}`,
-  );
+  return redirectTo(profile?.cv_url ? "/questionnaire" : "/upload-cv");
 }
