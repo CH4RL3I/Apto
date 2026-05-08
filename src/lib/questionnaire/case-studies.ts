@@ -34,6 +34,13 @@ export interface CaseStudy {
     primaryTag: string;
     secondaryTags: string[];
     totalTimeLabel: string;
+    logoUrl?: string;
+    brand?: {
+      primary: string;
+      primaryDark: string;
+      accent: string;
+      bg: string;
+    };
   };
   tasks?: ChallengeTask[];
 }
@@ -25207,7 +25214,14 @@ export const CASE_STUDIES: CaseStudy[] = [
         "Market entry",
         "~85 min"
       ],
-      "totalTimeLabel": "~85 min total"
+      "totalTimeLabel": "~85 min total",
+      "logoUrl": "/companies/ecothread.svg",
+      "brand": {
+        "primary": "#2F5D3A",
+        "primaryDark": "#1F3F27",
+        "accent": "#D9C9A0",
+        "bg": "#F4F1EA"
+      }
     },
     "desk": {
       "quote": "I joined EcoThread two years ago as the first strategy hire. Most of my job is translating messy market signals into a clear recommendation my CEO can defend to investors. You don't need perfect data — you need a clear argument. The analysts who impress me most are the ones who take a position early and back it up with logic, not the ones who hedge everything.",
