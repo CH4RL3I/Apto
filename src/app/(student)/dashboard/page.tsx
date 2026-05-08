@@ -234,7 +234,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                   <Link
-                    href="/upload-cv"
+                    href="/profile/edit"
                     className="block rounded-[8px] px-3 py-2 text-sm font-medium text-charcoal-2 hover:bg-pale-sage hover:text-charcoal"
                   >
                     Edit profile
@@ -521,7 +521,7 @@ export default async function DashboardPage() {
               <section className="rounded-[18px] border border-sage-mist-2 bg-chalk p-5 shadow-1">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-sm font-bold text-charcoal">Your profile</h2>
-                  <Link href="/upload-cv" className="focus-ring rounded-lg px-2 py-1 text-xs font-semibold text-sage hover:underline">
+                  <Link href="/profile/edit" className="focus-ring rounded-lg px-2 py-1 text-xs font-semibold text-sage hover:underline">
                     Edit
                   </Link>
                 </div>
