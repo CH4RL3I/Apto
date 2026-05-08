@@ -5,6 +5,20 @@ import type { Career, CaseStudy } from "@/types";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 
+const ROLE_VIDEO_SEEDS: Record<string, string> = {
+  "product-manager": "https://www.youtube.com/embed/lFPe8w5Vh5w",
+  "ux-designer": "https://www.youtube.com/embed/v3ZeTtL9P3I",
+  "data-analyst": "https://www.youtube.com/embed/yZvFH7B6gKI",
+};
+
+const YT_EMBED_RE = /^https:\/\/www\.youtube\.com\/embed\/[A-Za-z0-9_-]+(?:\?[^"'<>\s]*)?$/;
+
+function resolveVideoUrl(c: Career): string | null {
+  const candidate = c.video_url || ROLE_VIDEO_SEEDS[c.slug];
+  if (!candidate) return null;
+  return YT_EMBED_RE.test(candidate) ? candidate : null;
+}
+
 export default async function CareerDetailPage({
   params,
 }: {
@@ -33,6 +47,9 @@ export default async function CareerDetailPage({
 
   const c = career as Career;
   const cases = (caseStudies || []) as (CaseStudy & { company: { name: string; logo_url: string | null } })[];
+  const videoUrl = resolveVideoUrl(c);
+  const featuredCase = cases[0];
+  const dayHighlights = (c.sample_schedule || []).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-pale-sage">
@@ -49,7 +66,7 @@ export default async function CareerDetailPage({
 
       {/* Hero */}
       <div className="border-b border-sage-mist-2 bg-pale-sage">
-        <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="max-w-4xl mx-auto px-6 py-10">
           <div className="flex items-center gap-4 mb-4">
             <span className="text-4xl">{c.icon}</span>
             <div>
@@ -81,12 +98,98 @@ export default async function CareerDetailPage({
         </div>
       </div>
 
+      {/* Snapshot: video + day-in-life highlights, kept above the fold */}
+      <div className="max-w-4xl mx-auto px-6 pt-8">
+        <div className="grid md:grid-cols-2 gap-6 items-start">
+          {videoUrl ? (
+            <div className="aspect-video w-full max-w-2xl rounded-lg overflow-hidden shadow-1 bg-charcoal">
+              <iframe
+                src={videoUrl}
+                title={`${c.title} explainer`}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                className="w-full h-full border-0"
+              />
+            </div>
+          ) : (
+            <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+              <h3 className="eyebrow mb-2">What they actually do</h3>
+              <p className="text-charcoal-2 text-sm leading-relaxed">{c.one_liner}</p>
+            </div>
+          )}
+
+          <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+            <h2 className="text-lg font-bold text-charcoal mb-3 tracking-tight">A day in the life</h2>
+            {dayHighlights.length > 0 ? (
+              <ul className="space-y-2">
+                {dayHighlights.map((item, i) => (
+                  <li key={i} className="flex gap-3 items-start text-sm">
+                    <span className="font-mono text-sage font-semibold w-14 flex-shrink-0">{item.time}</span>
+                    <span className="text-charcoal-2 leading-snug">{item.activity}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-charcoal-2 text-sm leading-relaxed line-clamp-4 whitespace-pre-line">{c.day_in_the_life}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Skills + tools chips, surfaced high */}
+      <div className="max-w-4xl mx-auto px-6 pt-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+            <h3 className="eyebrow mb-3">Required skills</h3>
+            <div className="flex flex-wrap gap-2">
+              {c.required_skills?.map((skill) => (
+                <Pill key={skill} variant="sage" size="sm">{skill}</Pill>
+              ))}
+            </div>
+          </div>
+          <div className="bg-chalk rounded-[14px] shadow-1 p-5">
+            <h3 className="eyebrow mb-3">Common tools</h3>
+            <div className="flex flex-wrap gap-2">
+              {c.tools?.map((tool) => (
+                <Pill key={tool} variant="mist" size="sm">{tool}</Pill>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Featured case study CTA */}
+      {featuredCase && (
+        <div className="max-w-4xl mx-auto px-6 pt-6">
+          <Link href={`/case-studies/${featuredCase.id}`} className="block">
+            <div className="bg-chalk rounded-[14px] shadow-1 hover:shadow-2 p-5 transition-shadow group border border-sage-mist-2">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="eyebrow mb-1">Try it for real &middot; {featuredCase.company?.name || "Featured case study"}</div>
+                  <h3 className="font-semibold text-charcoal group-hover:text-sage transition-colors">{featuredCase.title}</h3>
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    <Pill variant="mist" size="sm">{featuredCase.time_minutes} min</Pill>
+                    <Pill variant="mist" size="sm"><span className="capitalize">{featuredCase.difficulty}</span></Pill>
+                    <Pill variant="mist" size="sm"><span className="capitalize">{featuredCase.deliverable_format}</span></Pill>
+                  </div>
+                </div>
+                <span className="text-sage text-sm font-semibold group-hover:translate-x-1 transition-transform whitespace-nowrap">
+                  Start &rarr;
+                </span>
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
+
+      {/* Long-form content below the fold */}
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Main content */}
           <div className="md:col-span-2 space-y-8">
             <section>
-              <h2 className="text-xl font-bold text-charcoal mb-4 tracking-tight">A day in the life</h2>
+              <h2 className="text-xl font-bold text-charcoal mb-4 tracking-tight">Full day in the life</h2>
               <p className="text-charcoal-2 leading-relaxed whitespace-pre-line">{c.day_in_the_life}</p>
             </section>
 
@@ -117,7 +220,7 @@ export default async function CareerDetailPage({
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-charcoal mb-4 tracking-tight">Real case studies</h2>
+              <h2 className="text-xl font-bold text-charcoal mb-4 tracking-tight">More case studies</h2>
               {cases.length === 0 ? (
                 <p className="text-charcoal-2">No case studies available yet.</p>
               ) : (
@@ -156,24 +259,10 @@ export default async function CareerDetailPage({
             </section>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-4">
             <div className="bg-chalk rounded-[14px] shadow-1 p-5">
-              <h3 className="eyebrow mb-3">Required skills</h3>
-              <div className="flex flex-wrap gap-2">
-                {c.required_skills?.map((skill) => (
-                  <Pill key={skill} variant="mist" size="sm">{skill}</Pill>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-chalk rounded-[14px] shadow-1 p-5">
-              <h3 className="eyebrow mb-3">Common tools</h3>
-              <div className="flex flex-wrap gap-2">
-                {c.tools?.map((tool) => (
-                  <Pill key={tool} variant="mist" size="sm">{tool}</Pill>
-                ))}
-              </div>
+              <h3 className="eyebrow mb-3">About this role</h3>
+              <p className="text-sm text-charcoal-2 leading-relaxed">{c.description}</p>
             </div>
 
             {c.salary_range?.source && (
