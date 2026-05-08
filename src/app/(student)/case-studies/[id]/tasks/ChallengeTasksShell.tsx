@@ -31,6 +31,12 @@ import {
 import { FinalScoreCard } from "./FinalScoreCard";
 import { CertificateBanner } from "./CertificateBanner";
 import { ApplyWithCertificate } from "./ApplyWithCertificate";
+import {
+  startMultiTaskSubmission,
+  saveTaskResponse,
+  completeMultiTaskSubmission,
+  type TaskScores,
+} from "./actions";
 
 interface SessionState {
   currentIndex: number;
@@ -84,11 +90,34 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
   const [secondsLeft, setSecondsLeft] = useState<number>(
     (tasks[0]?.durationMin ?? 30) * 60,
   );
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [serverScores, setServerScores] = useState<TaskScores | null>(null);
+  const [scoringError, setScoringError] = useState<string | null>(null);
+  const [scoring, setScoring] = useState(false);
+  const completionTriggered = useRef(false);
 
   useEffect(() => {
     setState(loadState(caseStudy.id));
     setHydrated(true);
   }, [caseStudy.id]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { submissionId: id } = await startMultiTaskSubmission(
+          caseStudy.id,
+        );
+        if (!cancelled) setSubmissionId(id);
+      } catch (err) {
+        console.error("startMultiTaskSubmission failed", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, caseStudy.id]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -131,12 +160,26 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
   }
 
   function submitCurrent() {
+    const idx = state.currentIndex;
+    const task = tasks[idx];
+    if (!task) return;
+    const responsePayload =
+      task.type === "analysis"
+        ? state.analysis
+        : task.type === "recommendation"
+        ? state.recommendation
+        : state.curveball;
     setState((s) => {
       const submitted = [...s.submitted];
-      submitted[s.currentIndex] = true;
-      const completed = s.currentIndex === tasks.length - 1;
+      submitted[idx] = true;
+      const completed = idx === tasks.length - 1;
       return { ...s, submitted, completed: completed ? true : s.completed };
     });
+    if (submissionId) {
+      saveTaskResponse(submissionId, idx, task.type, responsePayload).catch(
+        (err) => console.error("saveTaskResponse failed", err),
+      );
+    }
   }
 
   function continueToNext() {
@@ -188,7 +231,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
     return a && a.count > 0 ? Math.round(a.sum / a.count) : 0;
   }
 
-  const finalDims = useMemo(() => {
+  const localFinalDims = useMemo(() => {
     if (!state.completed) return null;
     const dims: { label: string; score: number; feedback: string }[] = [];
     const labels = ["Structure", "Judgment", "Communication", "Composure"];
@@ -218,7 +261,37 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.completed, liveScores, state.curveball.stanceId]);
 
-  const overall = finalDims
+  useEffect(() => {
+    if (!state.completed || !submissionId) return;
+    if (completionTriggered.current) return;
+    completionTriggered.current = true;
+    setScoring(true);
+    setScoringError(null);
+    completeMultiTaskSubmission(submissionId)
+      .then(({ scores }) => setServerScores(scores))
+      .catch((err) => {
+        console.error("completeMultiTaskSubmission failed", err);
+        setScoringError(
+          err instanceof Error ? err.message : "Scoring failed",
+        );
+      })
+      .finally(() => setScoring(false));
+  }, [state.completed, submissionId]);
+
+  const finalDims = useMemo(() => {
+    if (serverScores) {
+      return serverScores.dimensions.map((d) => ({
+        label: d.name,
+        score: d.score,
+        feedback: d.feedback,
+      }));
+    }
+    return localFinalDims;
+  }, [serverScores, localFinalDims]);
+
+  const overall = serverScores
+    ? (serverScores.overall / 10).toFixed(1)
+    : finalDims && finalDims.length > 0
     ? (
         finalDims.reduce((acc, d) => acc + d.score, 0) /
         Math.max(1, finalDims.length) /
@@ -514,6 +587,16 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
           {/* Final completion screen */}
           {state.completed && finalDims && (
             <div className="space-y-4">
+              {scoring && !serverScores && (
+                <div className="rounded-[14px] border border-sage-mist-2 bg-chalk px-5 py-4 text-[12px] text-charcoal-2">
+                  Scoring your submission…
+                </div>
+              )}
+              {scoringError && (
+                <div className="rounded-[14px] border border-coral-200 bg-coral-50 px-5 py-4 text-[12px] text-coral-700">
+                  Scoring failed: {scoringError}. Showing preliminary scores.
+                </div>
+              )}
               <FinalScoreCard
                 challengeTitle={caseStudy.companyName ?? "Apto"}
                 roleLabel={caseStudy.matchesRoles[0] ?? "Analyst"}
@@ -522,6 +605,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
               />
               <CertificateBanner
                 challengeTitle={caseStudy.companyName ?? "Apto"}
+                submissionId={serverScores ? submissionId : null}
               />
               <ApplyWithCertificate
                 companyName={caseStudy.companyName ?? "Apto"}

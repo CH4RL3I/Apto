@@ -10,6 +10,17 @@ const COMPLETED_STATUSES = new Set([
   "shortlisted",
 ]);
 
+interface DimensionScore {
+  name: string;
+  score: number;
+  feedback: string;
+}
+
+interface MultiTaskScores {
+  overall: number;
+  dimensions: DimensionScore[];
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) return null;
   const d = new Date(value);
@@ -31,7 +42,9 @@ export default async function CertificatePage({
 
   const { data: submission } = await supabase
     .from("submissions")
-    .select("id, user_id, case_study_id, status, submitted_at, score")
+    .select(
+      "id, user_id, case_study_id, status, submitted_at, score, is_multi_task, task_scores",
+    )
     .eq("id", submissionId)
     .maybeSingle();
 
@@ -74,6 +87,14 @@ export default async function CertificatePage({
 
   const completionDate = formatDate(submission.submitted_at as string | null);
   const displayName = studentName?.trim() || "Apto Student";
+  const isMultiTask = Boolean(submission.is_multi_task);
+  const taskScores =
+    isMultiTask && submission.task_scores
+      ? (submission.task_scores as MultiTaskScores)
+      : null;
+  const headlineScore =
+    taskScores?.overall ??
+    (typeof submission.score === "number" ? submission.score : null);
 
   return (
     <div className="min-h-screen bg-pale-sage print:bg-white py-10 px-4 print:p-0 print:min-h-0">
@@ -119,16 +140,44 @@ export default async function CertificatePage({
               issued by{" "}
               <span className="font-semibold text-charcoal">{companyName}</span>
             </p>
-            {typeof submission.score === "number" && (
+            {typeof headlineScore === "number" && (
               <p className="mt-6 text-sm text-charcoal-2">
                 Score:{" "}
                 <span className="font-bold text-charcoal stat-num">
-                  {submission.score}
+                  {headlineScore}
                 </span>
                 <span className="text-charcoal-3">/100</span>
               </p>
             )}
           </div>
+
+          {taskScores && taskScores.dimensions.length > 0 && (
+            <div className="mt-10 border-t border-sage-mist-2 pt-6">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3 mb-3 text-center">
+                Score breakdown
+              </div>
+              <div className="space-y-3 max-w-xl mx-auto">
+                {taskScores.dimensions.map((d) => (
+                  <div key={d.name}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-32 text-[12px] font-medium text-charcoal-2">
+                        {d.name}
+                      </div>
+                      <div className="flex-1 h-2 rounded-full bg-sage-mist-2 overflow-hidden print:border print:border-sage">
+                        <div
+                          className="h-full bg-sage"
+                          style={{ width: `${d.score}%` }}
+                        />
+                      </div>
+                      <div className="w-10 text-right text-[13px] font-bold text-charcoal stat-num">
+                        {(d.score / 10).toFixed(1)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-12 grid grid-cols-2 gap-6 border-t border-sage-mist-2 pt-6">
             <div>
@@ -157,4 +206,3 @@ export default async function CertificatePage({
     </div>
   );
 }
-
