@@ -11,7 +11,13 @@ const supabaseKey =
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/upload-cv";
+  // Only honor an in-app absolute path; reject protocol-relative ("//evil.com")
+  // and external URLs. Default students to /dashboard (FR-6).
+  const rawNext = searchParams.get("next");
+  const next =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : "/dashboard";
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login`);
@@ -88,14 +94,5 @@ export async function GET(request: NextRequest) {
     return redirectTo("/portal");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("completed_at, cv_url")
-    .eq("user_id", user.id)
-    .single();
-
-  if (profile?.completed_at) {
-    return redirectTo("/dashboard");
-  }
-  return redirectTo(profile?.cv_url ? "/questionnaire" : "/upload-cv");
+  return redirectTo(next);
 }
