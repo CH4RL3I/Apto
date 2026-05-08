@@ -113,30 +113,67 @@ export default async function CaseStudyBriefPage({
           </div>
         )}
 
-        {/* Start exam CTA */}
-        <div className="text-center bg-pale-sage border border-sage-mist-2 rounded-[20px] p-10 shadow-1">
-          <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-2 tracking-tight">
-            Ready to prove yourself?
-          </h2>
-          <p className="text-charcoal-2 mb-6 leading-relaxed max-w-md mx-auto">
-            You&apos;ll have {cs.estimatedMinutes} minutes in a focused exam environment.
-            Your work auto-saves every 10 seconds.
-          </p>
-          <ButtonLink
-            href={
-              cs.tasks && cs.tasks.length > 0
-                ? `/case-studies/${cs.id}/tasks`
-                : `/case-studies/${cs.id}/exam`
-            }
-            variant="primary"
-            size="lg"
-          >
-            Start case study &rarr;
-          </ButtonLink>
-          <p className="text-xs text-charcoal-3 mt-4">
-            Timer starts when you click. Your work is auto-saved.
-          </p>
-        </div>
+        {/* Start CTA */}
+        {cs.tasks && cs.tasks.length > 0 ? (
+          <div className="bg-pale-sage border border-sage-mist-2 rounded-[20px] p-8 md:p-10 shadow-1">
+            <div className="text-center mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-2 tracking-tight">
+                Choose your mode
+              </h2>
+              <p className="text-charcoal-2 leading-relaxed max-w-lg mx-auto">
+                Multi-task gives you guided steps and per-dimension feedback. Exam
+                mode is one freeform brief with a timer.
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <ButtonLink
+                href={`/case-studies/${cs.id}/tasks`}
+                variant="primary"
+                size="lg"
+                className="flex-col !items-stretch text-center"
+              >
+                <span>Start multi-task challenge &rarr;</span>
+                <span className="mt-1 block text-[11px] font-medium text-chalk/80">
+                  {cs.tasks.length} tasks · ~{cs.estimatedMinutes} min · certificate
+                </span>
+              </ButtonLink>
+              <ButtonLink
+                href={`/case-studies/${cs.id}/exam`}
+                variant="ghost"
+                size="lg"
+                className="flex-col !items-stretch text-center"
+              >
+                <span>Or do the classic exam &rarr;</span>
+                <span className="mt-1 block text-[11px] font-medium text-charcoal-3">
+                  single timed brief
+                </span>
+              </ButtonLink>
+            </div>
+            <p className="text-xs text-charcoal-3 mt-4 text-center">
+              Timer starts when you click. Your work is auto-saved.
+            </p>
+          </div>
+        ) : (
+          <div className="text-center bg-pale-sage border border-sage-mist-2 rounded-[20px] p-10 shadow-1">
+            <h2 className="text-xl md:text-2xl font-bold text-charcoal mb-2 tracking-tight">
+              Ready to prove yourself?
+            </h2>
+            <p className="text-charcoal-2 mb-6 leading-relaxed max-w-md mx-auto">
+              You&apos;ll have {cs.estimatedMinutes} minutes in a focused exam environment.
+              Your work auto-saves every 10 seconds.
+            </p>
+            <ButtonLink
+              href={`/case-studies/${cs.id}/exam`}
+              variant="primary"
+              size="lg"
+            >
+              Start challenge &rarr;
+            </ButtonLink>
+            <p className="text-xs text-charcoal-3 mt-4">
+              Timer starts when you click. Your work is auto-saved.
+            </p>
+          </div>
+        )}
       </div>
     </StudentShell>
   );

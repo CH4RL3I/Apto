@@ -318,8 +318,24 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
     return null;
   }
 
+  const brand = caseStudy.companyBlock?.brand;
+  const companyLogoUrl = caseStudy.companyBlock?.logoUrl;
+  const brandStyle = brand
+    ? ({
+        "--brand-primary": brand.primary,
+        "--brand-primary-dark": brand.primaryDark,
+        "--brand-accent": brand.accent,
+        "--brand-bg": brand.bg,
+      } as React.CSSProperties)
+    : undefined;
+  const rootBgClass = brand ? "" : "bg-pale-sage/30";
+  const rootBgStyle = brand ? { backgroundColor: brand.bg } : undefined;
+
   return (
-    <div className="min-h-screen bg-pale-sage/30">
+    <div
+      className={`min-h-screen ${rootBgClass}`}
+      style={{ ...brandStyle, ...rootBgStyle }}
+    >
       {/* Top bar */}
       <nav className="sticky top-0 z-30 flex h-[52px] items-center justify-between bg-charcoal px-6">
         <Link href="/dashboard" className="focus-ring inline-flex">
@@ -327,19 +343,33 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
         </Link>
         <div className="flex items-center gap-3">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-chalk/10 bg-chalk/5 px-3 py-1 text-[13px] font-medium text-chalk">
-            <span className="h-1.5 w-1.5 rounded-full bg-sage animate-pulse" />
+            <span
+              className={`h-1.5 w-1.5 rounded-full animate-pulse ${
+                brand ? "bg-[var(--brand-primary)]" : "bg-sage"
+              }`}
+            />
             <span className="font-mono">{formatTime(secondsLeft)}</span>
           </div>
         </div>
       </nav>
 
-      <div className="grid lg:grid-cols-[300px_1fr] min-h-[calc(100vh-52px)]">
+      <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] min-h-[calc(100vh-52px)]">
         {/* Sidebar */}
         <aside className="border-r border-sage-mist-2 bg-chalk lg:sticky lg:top-[52px] lg:h-[calc(100vh-52px)] lg:overflow-y-auto">
           <div className="border-b border-sage-mist-2 p-5">
-            <div className="mb-2.5 flex h-11 w-11 items-center justify-center rounded-[10px] bg-charcoal text-sm font-bold text-sage tracking-wide">
-              {initials}
-            </div>
+            {companyLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={companyLogoUrl}
+                alt={`${caseStudy.companyName ?? "Company"} logo`}
+                className="mb-2.5 h-11 w-11 rounded-[10px] object-contain"
+                style={brand ? { backgroundColor: brand.accent } : undefined}
+              />
+            ) : (
+              <div className="mb-2.5 flex h-11 w-11 items-center justify-center rounded-[10px] bg-charcoal text-sm font-bold text-sage tracking-wide">
+                {initials}
+              </div>
+            )}
             <div className="text-[15px] font-semibold text-charcoal">
               {caseStudy.companyName ?? "Apto"}
             </div>
@@ -379,16 +409,22 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
                   disabled={locked}
                   className={`mb-1 flex w-full items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                     active
-                      ? "border-sage bg-pale-sage"
+                      ? brand
+                        ? "border-[var(--brand-primary)] bg-[var(--brand-bg)]"
+                        : "border-sage bg-pale-sage"
                       : "border-transparent hover:bg-pale-sage/40"
                   }`}
                 >
                   <span
                     className={`flex h-6 w-6 flex-none items-center justify-center rounded-full text-[11px] font-bold ${
                       done
-                        ? "bg-pale-sage text-sage-700"
+                        ? brand
+                          ? "bg-[var(--brand-bg)] text-[var(--brand-primary-dark)]"
+                          : "bg-pale-sage text-sage-700"
                         : active
-                        ? "bg-sage text-chalk"
+                        ? brand
+                          ? "bg-[var(--brand-primary)] text-chalk"
+                          : "bg-sage text-chalk"
                         : "bg-pale-sage text-charcoal-2"
                     }`}
                   >
@@ -423,7 +459,9 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
                     <span className="text-[12px] text-charcoal-2">{dim}</span>
                     <div className="h-1 w-20 overflow-hidden rounded-full bg-sage-mist-2">
                       <div
-                        className="h-full bg-sage transition-all duration-700"
+                        className={`h-full transition-all duration-700 ${
+                          brand ? "bg-[var(--brand-primary)]" : "bg-sage"
+                        }`}
                         style={{ width: `${v}%` }}
                       />
                     </div>
@@ -440,9 +478,16 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
         </aside>
 
         {/* Main */}
-        <main className="px-6 py-7 md:px-8 max-w-[820px] w-full">
+        <main className="px-6 py-7 md:px-8 w-full">
+         <div className="mx-auto w-full max-w-3xl">
           {/* Progress banner */}
-          <div className="mb-5 flex items-center justify-between rounded-[14px] bg-charcoal px-5 py-4">
+          <div className="relative mb-5 flex items-center justify-between overflow-hidden rounded-[14px] bg-charcoal px-5 py-4">
+            {brand && (
+              <span
+                aria-hidden
+                className="absolute inset-x-0 top-0 h-[3px] bg-[var(--brand-primary)]"
+              />
+            )}
             <div>
               <div className="text-[13px] text-chalk/70">
                 <strong className="font-semibold text-chalk">
@@ -462,9 +507,13 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
                   key={i}
                   className={`h-1.5 w-7 rounded-full ${
                     state.submitted[i]
-                      ? "bg-sage"
+                      ? brand
+                        ? "bg-[var(--brand-primary)]"
+                        : "bg-sage"
                       : i === state.currentIndex
-                      ? "bg-sage/50"
+                      ? brand
+                        ? "bg-[var(--brand-primary)]/50"
+                        : "bg-sage/50"
                       : "bg-chalk/15"
                   }`}
                 />
@@ -476,7 +525,11 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
           {state.currentIndex === 0 && !state.completed && (
             <>
               <div className="mb-6">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sage mb-1.5">
+                <div
+                  className={`text-[11px] font-semibold uppercase tracking-[0.1em] mb-1.5 ${
+                    brand ? "text-[var(--brand-primary)]" : "text-sage"
+                  }`}
+                >
                   {caseStudy.companyName ?? "Apto"} ·{" "}
                   {caseStudy.companyBlock?.primaryTag ?? "Challenge"}
                 </div>
@@ -516,6 +569,9 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
 
               <CompanyBrief
                 body={caseStudy.body}
+                logoUrl={companyLogoUrl}
+                companyName={caseStudy.companyName ?? undefined}
+                initials={initials}
                 insight={{
                   label: "How analysts approach this",
                   text: "Start by asking: which market is most ready, not which is biggest? Look at who already shops like your customer, not just population size. Use proxies — sustainability brand penetration, average online spend, competitor presence — to narrow down fast. Then pick one and defend it.",
@@ -621,6 +677,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
               </div>
             </div>
           )}
+         </div>
         </main>
       </div>
     </div>
