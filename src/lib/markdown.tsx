@@ -2,6 +2,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export function Markdown({ source }: { source: string }) {
+  // Notion exports often prepend a raw <img> for the company logo. The logo
+  // already renders separately (companyBlock.logoUrl), and react-markdown
+  // escapes raw HTML by default — so the tag would print as literal text.
+  const cleaned = source.replace(/^\s*<img\b[^>]*\/?>\s*\n?/i, "");
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
@@ -44,7 +48,7 @@ export function Markdown({ source }: { source: string }) {
         td: (props) => <td className="border border-border px-3 py-2" {...props} />,
       }}
     >
-      {source}
+      {cleaned}
     </ReactMarkdown>
   );
 }
