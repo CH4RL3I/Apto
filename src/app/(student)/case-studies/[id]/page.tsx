@@ -123,7 +123,11 @@ export default async function CaseStudyBriefPage({
             Your work auto-saves every 10 seconds.
           </p>
           <ButtonLink
-            href={`/case-studies/${cs.id}/exam`}
+            href={
+              cs.tasks && cs.tasks.length > 0
+                ? `/case-studies/${cs.id}/tasks`
+                : `/case-studies/${cs.id}/exam`
+            }
             variant="primary"
             size="lg"
           >

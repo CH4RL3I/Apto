@@ -23,7 +23,102 @@ export interface CaseStudy {
     summary: string;
     glossary: { term: string; definition: string }[];
   };
+  desk?: {
+    quote: string;
+    authorName: string;
+    authorTitle: string;
+    authorInitials: string;
+  };
+  companyBlock?: {
+    tagline: string;
+    primaryTag: string;
+    secondaryTags: string[];
+    totalTimeLabel: string;
+  };
+  tasks?: ChallengeTask[];
 }
+
+export interface ChallengeResource {
+  title: string;
+  subtitle: string;
+  icon: string;
+}
+
+export interface QuickCheckOption {
+  text: string;
+  correct: boolean;
+  feedback: string;
+}
+
+export interface AnalysisTask {
+  type: "analysis";
+  title: string;
+  durationMin: number;
+  scoredOn: string[];
+  quickCheck: { question: string; options: QuickCheckOption[] };
+  prompt: string;
+  dataTable?: { columns: string[]; rows: string[][] };
+  textarea: { placeholder: string; wordLimit: number };
+  resources: ChallengeResource[];
+}
+
+export interface PickerOption {
+  id: string;
+  emoji: string;
+  name: string;
+  sub: string;
+}
+
+export interface MatchingRow {
+  factor: string;
+  correctReasonId: string;
+  options: { id: string; text: string }[];
+}
+
+export interface RecommendationTask {
+  type: "recommendation";
+  title: string;
+  durationMin: number;
+  scoredOn: string[];
+  brief: string;
+  picker: { label: string; options: PickerOption[] };
+  matching: { instruction: string; rows: MatchingRow[] };
+  textarea: {
+    label: string;
+    helperHtml: string;
+    structureTip: string;
+    placeholder: string;
+    wordLimit: number;
+  };
+  resources: ChallengeResource[];
+}
+
+export interface StanceOption {
+  id: string;
+  icon: string;
+  title: string;
+  sub: string;
+  coachingHint: string;
+}
+
+export interface CurveballTask {
+  type: "curveball";
+  title: string;
+  durationMin: number;
+  scoredOn: string[];
+  curveballHtml: string;
+  recapText: string;
+  insight: { label: string; text: string };
+  stancePicker: { options: StanceOption[] };
+  textarea: {
+    label: string;
+    helperHtml: string;
+    placeholder: string;
+    wordLimit: number;
+  };
+}
+
+export type ChallengeTask = AnalysisTask | RecommendationTask | CurveballTask;
 
 export const CASE_STUDIES: CaseStudy[] = [
   {
@@ -2825,5 +2920,217 @@ export const CASE_STUDIES: CaseStudy[] = [
     "companyName": "Brennstein Capital",
     "logoUrl": "/company-logos/cs-76-real-estate-proptech.png",
     "body": "<img src=\"logos/cs-76-real-estate-proptech.png\" alt=\"Brennstein Capital logo\" width=\"120\" align=\"right\" />\n\n# Acquire or Pass: Underwrite a Mixed-Use Asset and Brief Investment Committee\n\n## Context\n\nYou work at **Brennstein Capital**, a mid-sized European real-estate investment manager (~€2.1B AUM, value-add and core-plus strategies, focus DACH + Benelux). A target asset has surfaced through a broker: **\"Lindenpark\"** — a 1980s-era mixed-use building in central Düsseldorf (12,400 sqm: 60% office, 30% retail, 10% residential), currently held by a family office that wants out for estate-planning reasons.\n\nInvestment committee meets in **9 days**. The senior partner running this transaction has asked you to (1) underwrite the asset, (2) flag risks, (3) recommend acquire / pass / negotiate. Asking price: **€48.5M** (~€3,910/sqm).\n\n## Your Role\n\nYou are a **Real Estate Analyst** (2nd year) in the Acquisitions team. You'll lead the financial model and risk assessment; the senior partner handles seller relationship and final pitch.\n\n## Situation\n\n**The asset:**\n- Built 1984, last major refurbishment 2008\n- Location: 7-minute walk from Düsseldorf Hbf, B-grade neighborhood that's gentrifying\n- Office tenants: 14 leases. Anchor tenant (38% of office space, a regional accounting firm) lease expires in 14 months — they have signaled they may not renew (decision: hybrid downsizing)\n- Retail: 4 tenants (a supermarket on long lease, a fitness studio that just opened, a bakery, a vacant unit)\n- Residential: 12 apartments, all rent-controlled (Mietpreisbremse applies), occupancy 100%\n- EPC rating: D — likely needs upgrade to C or B to meet 2030+ EU energy standards (cost estimate: €4.2M-€6.8M for envelope and HVAC)\n- Land lease (Erbbaurecht) on 30% of the site, 47 years remaining, ground rent €38k/year escalating\n\n**Current financials (seller-provided, broker-confirmed):**\n- Gross rental income: €3.9M/year\n- Operating costs (recoverable + non-recoverable): €1.1M/year\n- NOI: €2.8M/year\n- Implied gross yield at asking price: 8.0%\n- Implied net yield: 5.8%\n- Vacancy in office: currently 6%, anchor-tenant departure could take it to 25%\n\n**Comparable transactions (Düsseldorf, last 18 months):**\n- Stabilized core office: €5,200-6,800/sqm, yields 4.5-5.2%\n- Value-add office: €3,200-4,500/sqm, yields 6.0-7.5%\n- This asset is positioned as value-add given the lease expiry, refurb need, and EPC\n\n**Market context:**\n- Düsseldorf office vacancy: ~10.5%, rising slightly\n- Hybrid work has hit B-grade office disproportionately\n- Retail has stabilized post-pandemic; supermarkets are increasingly desirable as anchors\n- Interest rates have come down ~120bps from peak; investor demand returning but selectively\n- ESG/EPC rules: from 2030, EPC D could become unlettable in some German cities\n\n**Renovation/repositioning options:**\n1. Hold-and-let: minimal capex, accept lower rents, ride out cycle\n2. Light refurb (€2.5M): EPC D → C, freshen common areas, target B-grade office tenants\n3. Value-add (€7-9M): EPC D → B, redesign office floors for hybrid use (more meeting rooms / fewer desks), upgrade lobby\n4. Major repositioning (€14-18M): change use mix — convert 2 floors of office to residential or co-living, capitalize on housing demand\n5. Demolition/redevelopment: €40M+, 3-year timeline, max upside but max risk\n\n**Internal context:**\n- Brennstein's fund (current vintage): targets 14% gross IRR, 5-7 year hold\n- Recent deal: a similar Frankfurt asset returned 11% IRR, slightly underwhelming\n- Senior partner is keen on this deal — has known the seller for years\n- Fund's available capital can deploy this size, but committee has been more selective recently\n\n## Your Task\n\nInvestment committee memo (1.5–2 pages):\n\n1. **Recommendation**: Acquire / Pass / Negotiate (with price target). Be explicit.\n2. **Underwriting summary**: what's your projected 5-year IRR under base, downside, upside cases? Sketch the math.\n3. **Top-3 risks**: ranked, with potential mitigants\n4. **Repositioning strategy**: which of the 5 renovation options do you recommend? Why?\n5. **The anchor-tenant question**: how do you handle the lease-expiry uncertainty in your underwriting?\n6. **Negotiation levers**: if \"Negotiate,\" at what price would this be a clear yes? What concessions or earnouts would help?\n7. **The senior partner's emotional investment**: the relationship with the seller is real. How do you flag a \"Pass\" recommendation if that's what the numbers say?\n\n## Guiding Questions\n\n- 5.8% net yield on a value-add asset with 25%-vacancy risk in 14 months looks light. What's the right pricing for this risk?\n- EPC D → C costs €2.5M today; doing nothing risks unlettability post-2030. How do you think about regulatory risk that's 5+ years away?\n- The Erbbaurecht (47 years left) means you don't own the land outright on 30% of the site. How does that affect your bid?\n- Repositioning to residential/co-living could unlock value — but it triggers complex permitting in Düsseldorf. Is \"max upside\" worth the execution risk?\n\n## Match Info\n\n**Case fits:** Real Estate Analyst · Property Valuation Analyst · Acquisitions Analyst · PropTech Product Manager · Construction Project Coordinator · Real Estate Asset Manager · Real Estate Strategy Associate\n**Primary tests:** underwriting, risk assessment, capex planning, IC narrative\n**Industry fit:** real-estate investment management, REITs, family offices, real-estate development, PropTech (deal-platform side)"
+  },
+  {
+    "id": "cs-99-ecothread-strategy",
+    "title": "Which European city should EcoThread enter first?",
+    "cluster": "strategy",
+    "duration": "long",
+    "estimatedMinutes": 85,
+    "matchesRoles": [
+      "Strategy Analyst",
+      "Strategy Associate",
+      "Market Expansion Analyst",
+      "Business Development Analyst",
+      "Founder's Associate"
+    ],
+    "matchesFields": [
+      "Strategy",
+      "Business"
+    ],
+    "matchesIndustries": [
+      "Consumer",
+      "Retail",
+      "Tech"
+    ],
+    "matchesMode": "deep",
+    "matchesOutput": "advisor",
+    "skillsTested": [
+      "Structured market analysis",
+      "Recommendation under uncertainty",
+      "Executive communication",
+      "Composure under pressure"
+    ],
+    "companyName": "EcoThread",
+    "logoUrl": "/company-logos/cs-99-ecothread-strategy.png",
+    "body": "# Which European city should EcoThread enter first?\n\nYou're a new strategy analyst. The CEO needs a market entry recommendation before the board call.\n\nThis is a multi-task challenge — you'll work through three connected tasks: an analysis, a recommendation, and a curveball.",
+    "companyBlock": {
+      "tagline": "Sustainable fashion · Series A · Berlin",
+      "primaryTag": "Strategy",
+      "secondaryTags": ["Market entry", "~85 min"],
+      "totalTimeLabel": "~85 min total"
+    },
+    "desk": {
+      "quote": "I joined EcoThread two years ago as the first strategy hire. Most of my job is translating messy market signals into a clear recommendation my CEO can defend to investors. You don't need perfect data — you need a clear argument. The analysts who impress me most are the ones who take a position early and back it up with logic, not the ones who hedge everything.",
+      "authorName": "Mia Krause",
+      "authorTitle": "Head of Strategy · EcoThread",
+      "authorInitials": "MK"
+    },
+    "tasks": [
+      {
+        "type": "analysis",
+        "title": "Analyse the three markets",
+        "durationMin": 35,
+        "scoredOn": ["Structure", "Judgment", "Communication"],
+        "quickCheck": {
+          "question": "When evaluating a new market for expansion, which factor matters most for a premium DTC brand?",
+          "options": [
+            {
+              "text": "Total population size — bigger market means more potential customers",
+              "correct": false,
+              "feedback": "Think about what makes a premium brand succeed — it's not scale, it's whether the customer already has the mindset and spending behaviour."
+            },
+            {
+              "text": "Existing demand for sustainable products and willingness to pay a premium",
+              "correct": true,
+              "feedback": "Demand and willingness to pay is the right lens. A large market with no premium culture is harder to crack than a smaller market where the behaviour already exists."
+            },
+            {
+              "text": "Low competitor presence — entering an empty market is always safer",
+              "correct": false,
+              "feedback": "An empty market often means there's no proven demand. Some competition validates that customers are already buying."
+            },
+            {
+              "text": "Cheapest logistics cost to minimise overheads in year one",
+              "correct": false,
+              "feedback": "Logistics matters, but it rarely decides where a premium brand wins. Demand and brand fit come first."
+            }
+          ]
+        },
+        "prompt": "Using the data below, compare Amsterdam, Paris, and Stockholm across the dimensions you think matter most for EcoThread.\n\nYou don't need to analyse everything — pick the 2–3 factors most relevant to their situation and explain why you chose them.",
+        "dataTable": {
+          "columns": ["Metric", "Amsterdam", "Paris", "Stockholm"],
+          "rows": [
+            ["Population (city)", "0.9M", "2.1M", "1.0M"],
+            ["Sustainable fashion market (€M)", "€340M", "€580M", "€290M"],
+            ["Avg. online fashion spend / capita", "€420", "€380", "€510"],
+            ["Competitor sustainable brands", "8", "22", "6"],
+            ["English proficiency index", "Very high", "Low", "Very high"],
+            ["Cultural proximity to Germany", "High", "Medium", "Medium"]
+          ]
+        },
+        "textarea": {
+          "placeholder": "Write your analysis here. Pick your 2–3 key factors and compare the three cities against them. Show your reasoning, not just your conclusion.",
+          "wordLimit": 200
+        },
+        "resources": [
+          { "title": "How to evaluate a new market in 3 steps", "subtitle": "Framework card · 2 min read", "icon": "📐" },
+          { "title": "What is TAM, SAM, SOM?", "subtitle": "Glossary · 1 min read", "icon": "📖" },
+          { "title": "Example: How a past analyst structured their answer", "subtitle": "Anonymised · passing score", "icon": "💬" }
+        ]
+      },
+      {
+        "type": "recommendation",
+        "title": "Make your recommendation",
+        "durationMin": 30,
+        "scoredOn": ["Structure", "Judgment", "Communication"],
+        "brief": "Based on your analysis, the CEO needs a single clear recommendation. You'll do this in two steps — first pick your city, then explain your reasoning and address the biggest risk.",
+        "picker": {
+          "label": "Step 1 — Choose your market",
+          "options": [
+            { "id": "amsterdam", "emoji": "🇳🇱", "name": "Amsterdam", "sub": "High spend · cultural fit" },
+            { "id": "paris", "emoji": "🇫🇷", "name": "Paris", "sub": "Largest market · high competition" },
+            { "id": "stockholm", "emoji": "🇸🇪", "name": "Stockholm", "sub": "Highest spend · smaller market" }
+          ]
+        },
+        "matching": {
+          "instruction": "Connect each market factor to the strategic reason it should influence your decision. This is how analysts structure a board-ready recommendation.",
+          "rows": [
+            {
+              "factor": "High online spend per capita",
+              "correctReasonId": "revenue",
+              "options": [
+                { "id": "revenue", "text": "Signals customers willing to pay premium prices" },
+                { "id": "ops", "text": "Easier logistics and fulfilment" },
+                { "id": "brand", "text": "Stronger brand recognition in market" },
+                { "id": "comp", "text": "Fewer competitors to differentiate from" }
+              ]
+            },
+            {
+              "factor": "Low competitor density",
+              "correctReasonId": "comp",
+              "options": [
+                { "id": "revenue", "text": "Signals customers willing to pay premium prices" },
+                { "id": "ops", "text": "Easier logistics and fulfilment" },
+                { "id": "brand", "text": "Stronger brand recognition in market" },
+                { "id": "comp", "text": "Lower cost to acquire first customers" }
+              ]
+            },
+            {
+              "factor": "Cultural proximity to Germany",
+              "correctReasonId": "brand",
+              "options": [
+                { "id": "revenue", "text": "Signals customers willing to pay premium prices" },
+                { "id": "ops", "text": "Easier to adapt messaging and brand" },
+                { "id": "brand", "text": "Existing brand awareness may carry over" },
+                { "id": "comp", "text": "Fewer competitors to differentiate from" }
+              ]
+            }
+          ]
+        },
+        "textarea": {
+          "label": "Step 3 — Write your recommendation",
+          "helperHtml": "Write a short recommendation the CEO can read in 60 seconds. <strong>Lead with your city choice.</strong> Then explain the top two reasons and acknowledge the biggest risk.",
+          "structureTip": "Start with: \"I recommend entering [city] because...\" Then two reasons. Then: \"The main risk is X, which we can mitigate by Y.\" Executives read the first sentence and skim the rest — lead with the answer.",
+          "placeholder": "I recommend entering [city] because...",
+          "wordLimit": 150
+        },
+        "resources": [
+          { "title": "How to write a board-ready recommendation", "subtitle": "Framework · 2 min read", "icon": "📄" },
+          { "title": "Example: anonymised passing recommendation", "subtitle": "Opens in side drawer", "icon": "💬" },
+          { "title": "What makes a recommendation weak", "subtitle": "Common mistakes · 1 min read", "icon": "⚡" }
+        ]
+      },
+      {
+        "type": "curveball",
+        "title": "Handle the curveball",
+        "durationMin": 20,
+        "scoredOn": ["Judgment", "Composure", "Communication"],
+        "curveballHtml": "You sent your recommendation to the CEO an hour ago. She just forwarded you this: <strong>Patagonia has announced a pop-up store in your recommended market opening in 6 weeks</strong>, targeting the exact same 25–35 urban sustainability customer. They have a €2M marketing budget for the launch and strong brand recognition.<br><br>The CEO's message: <em>\"Saw this. Does this change anything? Need your take before I present to the board in 90 minutes.\"</em>",
+        "recapText": "I recommend entering [your city] — strong spend per capita, cultural proximity to Germany, and manageable competitor density. Main risk is localisation cost, which we can offset by testing online-first before committing to a pop-up.",
+        "insight": {
+          "label": "How senior analysts handle this",
+          "text": "Don't panic and flip your recommendation — that signals weak conviction. Don't ignore the threat either — that signals poor judgment. The move is to acknowledge the new information, assess whether it actually changes the core logic, and give a clear updated view. Take a position."
+        },
+        "stancePicker": {
+          "options": [
+            {
+              "id": "hold",
+              "icon": "🎯",
+              "title": "Hold the recommendation",
+              "sub": "It still makes sense — here's why Patagonia doesn't change it",
+              "coachingHint": "Strong conviction — this is usually the right instinct if your original logic was sound. Make sure you explain why Patagonia's entry doesn't invalidate your core argument."
+            },
+            {
+              "id": "switch",
+              "icon": "🔄",
+              "title": "Switch to a different city",
+              "sub": "The competitive risk is too high — better to move to the next best option",
+              "coachingHint": "Defensible, but risky — switching at the first sign of competition can look reactive. You'll need a very clear reason why the alternative is better, not just that the original got harder."
+            },
+            {
+              "id": "delay",
+              "icon": "⏸️",
+              "title": "Delay the decision",
+              "sub": "Wait to see how Patagonia's launch goes before committing",
+              "coachingHint": "Hard to justify — the CEO has a board meeting in 90 minutes. 'Wait and see' isn't an answer she can take into a room of investors. Avoid this."
+            },
+            {
+              "id": "adapt",
+              "icon": "⚡",
+              "title": "Adapt the approach",
+              "sub": "Keep the city but change the entry strategy to reduce head-on competition",
+              "coachingHint": "Often the smartest move — it shows you can hold a position and update your approach simultaneously. What specifically would you change?"
+            }
+          ]
+        },
+        "textarea": {
+          "label": "Step 2 — Write your response to the CEO",
+          "helperHtml": "You have 90 minutes before her board presentation. Write the message you'd send back. <strong>100 words max.</strong> Lead with your position, give two reasons, and end with what you'd do next.",
+          "placeholder": "Hi [CEO name], I've looked at the Patagonia news. My view is...",
+          "wordLimit": 100
+        }
+      }
+    ]
   }
 ];
