@@ -223,7 +223,7 @@ export default async function Home() {
           <AppPreview />
         </section>
 
-        <section id="brand-essence" className="mt-24 md:mt-28">
+        <section id="brand-essence" className="mt-20 md:mt-24">
           <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <div className="eyebrow mb-3">Brand essence</div>
@@ -253,7 +253,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="how-it-works" className="mt-24 rounded-[28px] bg-chalk p-6 md:p-10 shadow-2">
+        <section id="how-it-works" className="mt-20 md:mt-24 rounded-[28px] bg-chalk p-6 md:p-10 shadow-2">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
             <div>
               <div className="eyebrow mb-3">Experience</div>
@@ -286,7 +286,7 @@ export default async function Home() {
         </section>
 
         <section className="mt-20 md:mt-24">
-          <div className="mb-8 md:mb-10 max-w-3xl">
+          <div className="mb-10 max-w-3xl">
             <div className="eyebrow mb-3">Inside Apto</div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
               A working product. Not a deck
@@ -304,7 +304,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="mt-16 md:mt-20">
+        <section className="mt-20 md:mt-24">
           <div className="rounded-[24px] bg-chalk p-8 md:p-10 shadow-2">
             <div className="grid gap-10 md:grid-cols-[1.1fr_1fr] md:items-center">
               <div>
@@ -338,7 +338,7 @@ export default async function Home() {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div className="rounded-[16px] bg-pale-sage p-5 shadow-1">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-sage">
                     <Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -369,7 +369,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="mt-16 md:mt-20 grid lg:grid-cols-[1fr_1.65fr] gap-6">
+        <section className="mt-20 md:mt-24 grid lg:grid-cols-[1fr_1.65fr] gap-6">
           <div className="relative overflow-hidden rounded-[24px] bg-sage p-8 text-chalk shadow-2">
             <div className="poster-path" />
             <div className="relative z-10">
@@ -423,7 +423,7 @@ export default async function Home() {
         </svg>
         <span className="apto-spark absolute right-12 top-12 hidden text-5xl md:block" aria-hidden />
 
-        <div className="relative z-10 mx-auto grid max-w-5xl gap-10 md:grid-cols-[1.1fr_1fr] md:items-center">
+        <div className="relative z-10 mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.1fr_1fr] md:items-center">
           <div>
             <div className="eyebrow mb-4 text-chalk/70">Start here</div>
             <h2 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight">
@@ -517,7 +517,7 @@ function AppPreview() {
 
               <div className="mb-6">
                 <h2 className="text-2xl font-bold tracking-tight text-charcoal">Good morning, Maya</h2>
-                <p className="mt-1 text-xs text-charcoal-2">Explore challenges. Build skills. Make an impact.</p>
+                <p className="mt-1 text-xs text-charcoal-2">Explore challenges. Build skills. Make an impact</p>
               </div>
 
               <div className="space-y-5">
