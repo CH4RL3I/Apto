@@ -42,6 +42,9 @@ export default async function ProfileEditPage() {
     education: cv?.education ?? "",
     experience: Array.isArray(cv?.experience) ? cv!.experience : [],
     skills: cvSkills,
+    isPublic: Boolean(profile?.is_public),
+    username: typeof profile?.username === "string" ? profile.username : "",
+    headline: typeof profile?.headline === "string" ? profile.headline : "",
   };
 
   return (
