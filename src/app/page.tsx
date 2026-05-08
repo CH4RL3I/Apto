@@ -175,24 +175,16 @@ export default async function Home() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 pb-20 pt-8 md:pt-14">
+      <main className="max-w-7xl mx-auto px-6 pb-20 pt-4 md:pt-6">
         <section className="grid lg:grid-cols-[0.92fr_1.08fr] gap-10 lg:gap-14 items-center">
           <div className="fade-in relative">
             <span className="apto-spark absolute -left-6 top-2 hidden text-3xl md:block" aria-hidden />
 
-            <Pill
-              variant="sage"
-              size="md"
-              icon={<Sparkles className="w-3.5 h-3.5" strokeWidth={1.75} />}
-            >
-              Career exploration, made practical
-            </Pill>
-
             <h1
-              className="mt-7 max-w-3xl text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.04] text-charcoal"
+              className="max-w-3xl text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.04] text-charcoal"
               style={{ textWrap: "balance" }}
             >
-              Explore what fits. Understand the work. Achieve with proof.
+              The Most Realistic Career Exploration Tool
             </h1>
 
             <p className="mt-6 max-w-xl text-lg md:text-xl italic font-medium text-sage-700">
@@ -232,9 +224,6 @@ export default async function Home() {
                 Four ideas guide everything we build.
               </h2>
             </div>
-            <p className="max-w-md text-sm md:text-base leading-relaxed text-charcoal-2">
-              From the first questionnaire to the final interview invitation — these promises hold throughout.
-            </p>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -265,9 +254,6 @@ export default async function Home() {
                 Less generic discovery. More real momentum.
               </h2>
             </div>
-            <p className="max-w-xl text-sm md:text-base leading-relaxed text-charcoal-2">
-              The visual system now mirrors the brand board: soft chalk surfaces, sage guidance, coral achievement moments, line icons, and a clear product rhythm.
-            </p>
           </div>
 
           <div className="mt-10 grid md:grid-cols-3 gap-5">
@@ -320,7 +306,7 @@ export default async function Home() {
                   No vanity metrics. Just real briefs, real industries, real proof.
                 </h2>
                 <p className="mt-3 max-w-md text-sm md:text-base leading-relaxed text-charcoal-2">
-                  Apto is an MVP. We&rsquo;re not going to pretend we have thousands of users yet. Here&rsquo;s what we actually have on day one.
+                  36 case studies across 26 fields — real company-style briefs you can solve, score, and show.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-1.5">
                   {[
