@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback } from "react";
+
 interface Props {
   value: string;
   onChange: (value: string) => void;
@@ -7,6 +9,8 @@ interface Props {
   wordLimit: number;
   rows?: number;
   disabled?: boolean;
+  /** Optional callback that receives the textarea node for paste tracking. */
+  onTextareaRef?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function OpenTextarea({
@@ -16,12 +20,20 @@ export function OpenTextarea({
   wordLimit,
   rows = 5,
   disabled = false,
+  onTextareaRef,
 }: Props) {
   const words = value.trim() ? value.trim().split(/\s+/).filter(Boolean).length : 0;
   const over = words > wordLimit;
+  const refCallback = useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      onTextareaRef?.(el);
+    },
+    [onTextareaRef],
+  );
   return (
     <div>
       <textarea
+        ref={refCallback}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
