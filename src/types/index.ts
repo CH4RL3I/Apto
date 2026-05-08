@@ -30,6 +30,7 @@ export interface Career {
   icon: string;
   target_vector: number[];
   tags: string[];
+  video_url?: string;
   created_at: string;
 }
 
