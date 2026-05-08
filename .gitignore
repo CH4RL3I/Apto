@@ -23,3 +23,6 @@ e2e-report/
 test-results/
 playwright/.cache/
 playwright-report/
+
+# LLM author script — local skip log
+scripts/.llm-author-skipped.json
