@@ -263,7 +263,7 @@ export function ProfileEditForm({ initial }: { initial: InitialValues }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
         <Button
           type="button"
           variant="ghost"

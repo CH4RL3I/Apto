@@ -105,7 +105,7 @@ export function Conversation({
   }
 
   return (
-    <div className="flex h-[calc(100vh-200px)] min-h-[480px] flex-col rounded-[14px] bg-chalk shadow-1">
+    <div className="flex h-[calc(100svh-180px)] min-h-[420px] flex-col rounded-[14px] bg-chalk shadow-1 sm:h-[calc(100vh-200px)] sm:min-h-[480px]">
       <div className="flex-1 overflow-y-auto p-5">
         {grouped.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-charcoal-3">
