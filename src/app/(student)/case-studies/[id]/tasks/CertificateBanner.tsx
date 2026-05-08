@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
-
 interface Props {
   challengeTitle: string;
+  submissionId: string | null;
 }
 
-export function CertificateBanner({ challengeTitle }: Props) {
-  const [showTooltip, setShowTooltip] = useState(false);
+export function CertificateBanner({ challengeTitle, submissionId }: Props) {
   return (
     <div className="rounded-[14px] border border-sage-mist-2 bg-pale-sage p-5 mb-4 flex items-center gap-4 fade-in">
       <div
@@ -25,23 +23,20 @@ export function CertificateBanner({ challengeTitle }: Props) {
           Companies can see exactly how you think, not just that you passed.
         </div>
       </div>
-      <div className="relative">
-        <button
-          type="button"
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          onClick={() => setShowTooltip((v) => !v)}
+      {submissionId ? (
+        <a
+          href={`/certificate/${submissionId}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="rounded-lg border border-sage bg-chalk px-3 py-2 text-[12px] font-semibold text-sage hover:bg-pale-sage focus-ring"
         >
           View certificate ↗
-        </button>
-        {showTooltip && (
-          <div className="absolute right-0 top-full mt-2 w-64 rounded-lg bg-charcoal text-chalk text-[11px] leading-relaxed px-3 py-2 shadow-2 z-10">
-            Certificate available — coming soon: shareable link with your full
-            response history.
-          </div>
-        )}
-      </div>
+        </a>
+      ) : (
+        <span className="rounded-lg border border-sage-mist-2 bg-chalk px-3 py-2 text-[12px] font-semibold text-charcoal-3">
+          Saving…
+        </span>
+      )}
     </div>
   );
 }
