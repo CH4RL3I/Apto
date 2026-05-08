@@ -452,6 +452,16 @@ export default function ExamPage() {
             >
               Go to dashboard
             </Button>
+            {submission?.id && (
+              <a
+                href={`/certificate/${submission.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="focus-ring inline-flex w-full items-center justify-center rounded-full border border-sage bg-chalk px-4 py-3 text-sm font-semibold text-sage shadow-1 transition-colors hover:bg-pale-sage"
+              >
+                Get certificate ↗
+              </a>
+            )}
             <Button
               onClick={() => router.push("/results")}
               variant="ghost"

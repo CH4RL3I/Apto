@@ -489,7 +489,14 @@ export default async function DashboardPage() {
                             ) : sub.status === "submitted" && sub.score == null ? (
                               <RetryScoringButton submissionId={sub.id as string} />
                             ) : (
-                              <Pill variant="mist" size="sm">Portfolio proof</Pill>
+                              <a
+                                href={`/certificate/${sub.id as string}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="focus-ring inline-flex items-center gap-1 rounded-full border border-sage bg-chalk px-3 py-1.5 text-xs font-semibold text-sage shadow-1 transition-colors hover:bg-pale-sage"
+                              >
+                                Get certificate ↗
+                              </a>
                             )}
                           </div>
                         </article>
