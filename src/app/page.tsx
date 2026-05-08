@@ -30,6 +30,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
+import { InfoTooltip, IMPACT_SCORE_TOOLTIP } from "@/components/ui/InfoTooltip";
 
 export const dynamic = "force-dynamic";
 
@@ -555,7 +556,12 @@ function AppPreview() {
                       ["Impact score", "820", "Top 15%"],
                     ].map(([label, value, caption]) => (
                       <div key={label} className="min-w-0 rounded-[12px] border border-sage-mist-2 bg-chalk p-3 shadow-1">
-                        <div className="truncate text-[10px] font-semibold text-charcoal-2">{label}</div>
+                        <div className="flex items-center gap-1 text-[10px] font-semibold text-charcoal-2">
+                          <span className="truncate">{label}</span>
+                          {label === "Impact score" ? (
+                            <InfoTooltip label="Impact Score" text={IMPACT_SCORE_TOOLTIP} />
+                          ) : null}
+                        </div>
                         <div className="stat-num mt-1 text-xl text-charcoal">{value}</div>
                         <div className="mt-0.5 truncate text-[9px] text-charcoal-3">{caption}</div>
                       </div>
@@ -682,7 +688,10 @@ function StudentProfileCard() {
         </div>
         <div>
           <div className="stat-num text-lg text-charcoal">820</div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Impact score</div>
+          <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">
+            <span>Impact score</span>
+            <InfoTooltip label="Impact Score" text={IMPACT_SCORE_TOOLTIP} />
+          </div>
         </div>
         <div>
           <div className="stat-num text-lg text-coral">15%</div>

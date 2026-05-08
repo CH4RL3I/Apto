@@ -17,6 +17,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { StudentSidebar } from "@/components/StudentSidebar";
 import { DashboardSearch } from "@/components/DashboardSearch";
 import { RetryScoringButton } from "@/components/RetryScoringButton";
+import { InfoTooltip, IMPACT_SCORE_TOOLTIP } from "@/components/ui/InfoTooltip";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
 import {
   getMatches,
@@ -324,7 +325,12 @@ export default async function DashboardPage() {
                     return (
                       <div key={card.label} className="rounded-[16px] border border-sage-mist-2 bg-chalk p-5 shadow-1">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="text-xs font-semibold text-charcoal-2">{card.label}</div>
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-charcoal-2">
+                            <span>{card.label}</span>
+                            {card.label === "Impact score" ? (
+                              <InfoTooltip label="Impact Score" text={IMPACT_SCORE_TOOLTIP} />
+                            ) : null}
+                          </div>
                           <Icon className={`h-5 w-5 ${card.accent}`} strokeWidth={1.75} />
                         </div>
                         <div className="stat-num mt-3 text-3xl text-charcoal">{card.value}</div>
@@ -561,7 +567,10 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <div className="stat-num text-base text-charcoal">{impactScore}</div>
-                    <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Impact</div>
+                    <div className="flex items-center justify-center gap-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">
+                      <span>Impact</span>
+                      <InfoTooltip label="Impact Score" text={IMPACT_SCORE_TOOLTIP} />
+                    </div>
                   </div>
                   <div>
                     <div className="stat-num text-base text-coral">
