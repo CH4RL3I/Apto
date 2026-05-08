@@ -35,8 +35,12 @@ import {
   startMultiTaskSubmission,
   saveTaskResponse,
   completeMultiTaskSubmission,
+  acceptHonorCode,
   type TaskScores,
 } from "./actions";
+import { useIntegrityTracking } from "@/lib/integrity/useIntegrityTracking";
+import { IntegrityChip } from "@/lib/integrity/IntegrityChip";
+import { HonorCodeModal } from "@/lib/integrity/HonorCodeModal";
 
 interface SessionState {
   currentIndex: number;
@@ -95,6 +99,12 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
   const [scoringError, setScoringError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
   const completionTriggered = useRef(false);
+
+  // Integrity tracking — proctor-style telemetry. Honest UX, not gotcha.
+  const { attachPasteListener, finalize: finalizeIntegrity } =
+    useIntegrityTracking({ trackPaste: true });
+  const [honorAccepted, setHonorAccepted] = useState(false);
+  const honorPersisted = useRef(false);
 
   useEffect(() => {
     setState(loadState(caseStudy.id));
@@ -267,7 +277,8 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
     completionTriggered.current = true;
     setScoring(true);
     setScoringError(null);
-    completeMultiTaskSubmission(submissionId)
+    const finalSignals = finalizeIntegrity();
+    completeMultiTaskSubmission(submissionId, finalSignals as unknown as Record<string, unknown>)
       .then(({ scores }) => setServerScores(scores))
       .catch((err) => {
         console.error("completeMultiTaskSubmission failed", err);
@@ -276,7 +287,16 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
         );
       })
       .finally(() => setScoring(false));
-  }, [state.completed, submissionId]);
+  }, [state.completed, submissionId, finalizeIntegrity]);
+
+  // Persist honor-code acknowledgement on first acceptance once we have a row.
+  useEffect(() => {
+    if (!honorAccepted || !submissionId || honorPersisted.current) return;
+    honorPersisted.current = true;
+    acceptHonorCode(submissionId).catch((err) =>
+      console.error("acceptHonorCode failed", err),
+    );
+  }, [honorAccepted, submissionId]);
 
   const finalDims = useMemo(() => {
     if (serverScores) {
@@ -342,6 +362,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
           <Logo variant="dark" height={20} priority />
         </Link>
         <div className="flex items-center gap-3">
+          <IntegrityChip tone="dark" />
           <div className="inline-flex items-center gap-1.5 rounded-full border border-chalk/10 bg-chalk/5 px-3 py-1 text-[13px] font-medium text-chalk">
             <span
               className={`h-1.5 w-1.5 rounded-full animate-pulse ${
@@ -352,6 +373,10 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
           </div>
         </div>
       </nav>
+
+      {!honorAccepted && (
+        <HonorCodeModal onAccept={() => setHonorAccepted(true)} />
+      )}
 
       <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] min-h-[calc(100vh-52px)]">
         {/* Sidebar */}
@@ -612,6 +637,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
               onContinue={continueToNext}
               showResources={showResources}
               setShowResources={setShowResources}
+              onTextareaRef={attachPasteListener}
             />
           )}
           {!state.completed && current.type === "recommendation" && (
@@ -627,6 +653,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
               onContinue={continueToNext}
               showResources={showResources}
               setShowResources={setShowResources}
+              onTextareaRef={attachPasteListener}
             />
           )}
           {!state.completed && current.type === "curveball" && (
@@ -637,6 +664,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
               onAnswerChange={(a) => setState((s) => ({ ...s, curveball: a }))}
               submitted={state.submitted[state.currentIndex]}
               onSubmit={submitCurrent}
+              onTextareaRef={attachPasteListener}
             />
           )}
 

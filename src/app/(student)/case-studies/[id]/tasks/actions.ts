@@ -111,8 +111,41 @@ export async function saveTaskResponse(
   }
 }
 
+export async function acceptHonorCode(submissionId: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  const { data: row } = await supabase
+    .from("submissions")
+    .select("id, user_id, integrity_signals")
+    .eq("id", submissionId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!row) return;
+
+  const existing =
+    (row.integrity_signals as Record<string, unknown> | null) ?? {};
+  if (existing.honor_code_accepted_at) return;
+
+  await supabase
+    .from("submissions")
+    .update({
+      integrity_signals: {
+        ...existing,
+        honor_code_accepted_at: new Date().toISOString(),
+      },
+    })
+    .eq("id", submissionId);
+}
+
 export async function completeMultiTaskSubmission(
   submissionId: string,
+  integritySignals?: Record<string, unknown> | null,
 ): Promise<{ scores: TaskScores }> {
   const supabase = await createClient();
   const {
@@ -124,13 +157,26 @@ export async function completeMultiTaskSubmission(
 
   const { data: row, error: loadErr } = await supabase
     .from("submissions")
-    .select("id, user_id")
+    .select("id, user_id, integrity_signals")
     .eq("id", submissionId)
     .eq("user_id", user.id)
     .maybeSingle();
 
   if (loadErr || !row) {
     throw new Error(loadErr?.message ?? "Submission not found");
+  }
+
+  // Merge incoming signals on top of any persisted fields (e.g.
+  // honor_code_accepted_at recorded earlier in the session).
+  if (integritySignals) {
+    const existing =
+      (row.integrity_signals as Record<string, unknown> | null) ?? {};
+    await supabase
+      .from("submissions")
+      .update({
+        integrity_signals: { ...existing, ...integritySignals },
+      })
+      .eq("id", submissionId);
   }
 
   const hdrs = await headers();

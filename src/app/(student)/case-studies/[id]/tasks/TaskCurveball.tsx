@@ -18,6 +18,7 @@ interface Props {
   onAnswerChange: (a: CurveballAnswer) => void;
   submitted: boolean;
   onSubmit: () => void;
+  onTextareaRef?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function computeCurveballScores(task: CurveballTask, a: CurveballAnswer) {
@@ -45,6 +46,7 @@ export function TaskCurveball({
   onAnswerChange,
   submitted,
   onSubmit,
+  onTextareaRef,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const selectedStance = task.stancePicker.options.find(
@@ -164,6 +166,7 @@ export function TaskCurveball({
             wordLimit={task.textarea.wordLimit}
             rows={5}
             disabled={submitted}
+            onTextareaRef={onTextareaRef}
           />
           {error && (
             <p className="mt-2 text-[12px] text-coral-700">{error}</p>

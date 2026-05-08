@@ -9,6 +9,8 @@ import type { Submission } from "@/types";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { Markdown } from "@/lib/markdown";
+import { useIntegrityTracking } from "@/lib/integrity/useIntegrityTracking";
+import { IntegrityChip } from "@/lib/integrity/IntegrityChip";
 
 type ScoringStatus = "idle" | "scoring" | "done" | "failed";
 
@@ -37,10 +39,15 @@ export default function ExamPage() {
   const [scoringStatus, setScoringStatus] = useState<ScoringStatus>("idle");
   const [examError, setExamError] = useState<string | null>(null);
 
-  // Integrity signals
+  // Integrity signals (legacy counters retained for the live header readout)
   const [tabSwitches, setTabSwitches] = useState(0);
   const [pasteCount, setPasteCount] = useState(0);
   const [fullscreenExits, setFullscreenExits] = useState(0);
+
+  // Richer integrity tracking (PRD §12).
+  const { attachPasteListener, finalize: finalizeIntegrity } =
+    useIntegrityTracking({ trackPaste: true });
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const answerRef = useRef(answer);
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
@@ -69,7 +76,13 @@ export default function ExamPage() {
         case_study_id: caseStudyId,
         status: "in_progress",
         started_at: new Date().toISOString(),
-        integrity_signals: { tab_switches: 0, paste_count: 0, fullscreen_exits: 0, time_spent_seconds: 0 },
+        integrity_signals: {
+          tab_switches: 0,
+          paste_count: 0,
+          fullscreen_exits: 0,
+          time_spent_seconds: 0,
+          honor_code_accepted_at: new Date().toISOString(),
+        },
         cv_snapshot_url: profile?.cv_url || null,
       })
       .select()
@@ -132,7 +145,10 @@ export default function ExamPage() {
       ? Math.round((Date.now() - new Date(submission.started_at).getTime()) / 1000)
       : 0;
 
+    const richSignals = finalizeIntegrity();
     const signals = {
+      ...richSignals,
+      // Keep legacy fields canonical so the verdict + portal readers stay in sync.
       tab_switches: tabSwitches,
       paste_count: pasteCount,
       fullscreen_exits: fullscreenExits,
@@ -183,7 +199,7 @@ export default function ExamPage() {
       console.error("Scoring failed:", err);
       setScoringStatus("failed");
     }
-  }, [submission, submitting, tabSwitches, pasteCount, fullscreenExits, supabase]);
+  }, [submission, submitting, tabSwitches, pasteCount, fullscreenExits, supabase, finalizeIntegrity]);
 
   // Load case study and create/resume submission
   useEffect(() => {
@@ -556,6 +572,7 @@ export default function ExamPage() {
         <div className="flex items-center gap-6">
           {/* Integrity indicators */}
           <div className="flex items-center gap-4 text-xs text-dim">
+            <IntegrityChip tone="dark" />
             {tabSwitches > 0 && (
               <span className="text-warn font-medium">Tab switches: {tabSwitches}</span>
             )}
@@ -595,6 +612,10 @@ export default function ExamPage() {
       {/* Editor area */}
       <div className="flex-1 flex flex-col p-6">
         <textarea
+          ref={(el) => {
+            textareaRef.current = el;
+            attachPasteListener(el);
+          }}
           value={answer}
           onChange={(e) => handleAnswerChange(e.target.value)}
           onPaste={handlePaste}

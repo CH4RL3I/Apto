@@ -43,7 +43,7 @@ export default async function CertificatePage({
   const { data: submission } = await supabase
     .from("submissions")
     .select(
-      "id, user_id, case_study_id, status, submitted_at, score, is_multi_task, task_scores",
+      "id, user_id, case_study_id, status, submitted_at, score, is_multi_task, task_scores, integrity_signals",
     )
     .eq("id", submissionId)
     .maybeSingle();
@@ -97,6 +97,43 @@ export default async function CertificatePage({
     (typeof submission.score === "number" ? submission.score : null);
   const PASSING = 60;
   const passed = headlineScore !== null && headlineScore >= PASSING;
+
+  const rawIntegrity = (submission.integrity_signals ?? null) as
+    | (Record<string, unknown> & {
+        tab_visibility_changes?: number;
+        tab_switches?: number;
+        paste_count?: number;
+        paste_events?: { at: number; charCount: number }[];
+        fullscreen_exits?: number;
+        active_seconds?: number;
+        total_elapsed_seconds?: number;
+        time_spent_seconds?: number;
+      })
+    | null;
+  const integrity = rawIntegrity
+    ? {
+        tabSwitches:
+          rawIntegrity.tab_switches ?? rawIntegrity.tab_visibility_changes ?? 0,
+        pasteCount:
+          rawIntegrity.paste_count ??
+          (Array.isArray(rawIntegrity.paste_events)
+            ? rawIntegrity.paste_events.length
+            : 0),
+        fullscreenExits: rawIntegrity.fullscreen_exits ?? 0,
+        timeSeconds:
+          rawIntegrity.total_elapsed_seconds ??
+          rawIntegrity.time_spent_seconds ??
+          rawIntegrity.active_seconds ??
+          0,
+      }
+    : null;
+  const formatDuration = (s: number) => {
+    if (!s) return "—";
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    if (m === 0) return `${r}s`;
+    return `${m}m ${r}s`;
+  };
 
   return (
     <div className="min-h-screen bg-pale-sage print:bg-white py-10 px-4 print:p-0 print:min-h-0">
@@ -182,6 +219,52 @@ export default async function CertificatePage({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {integrity && (
+            <div className="mt-10 border-t border-sage-mist-2 pt-6">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3 mb-3 text-center">
+                Integrity summary
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
+                <div className="rounded-[10px] border border-sage-mist-2 bg-pale-sage/40 px-3 py-2.5 text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-charcoal-3">
+                    Time on task
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-charcoal stat-num">
+                    {formatDuration(integrity.timeSeconds)}
+                  </div>
+                </div>
+                <div className="rounded-[10px] border border-sage-mist-2 bg-pale-sage/40 px-3 py-2.5 text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-charcoal-3">
+                    Tab switches
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-charcoal stat-num">
+                    {integrity.tabSwitches}
+                  </div>
+                </div>
+                <div className="rounded-[10px] border border-sage-mist-2 bg-pale-sage/40 px-3 py-2.5 text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-charcoal-3">
+                    Paste events
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-charcoal stat-num">
+                    {integrity.pasteCount}
+                  </div>
+                </div>
+                <div className="rounded-[10px] border border-sage-mist-2 bg-pale-sage/40 px-3 py-2.5 text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-charcoal-3">
+                    Fullscreen exits
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-charcoal stat-num">
+                    {integrity.fullscreenExits}
+                  </div>
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] text-charcoal-3 text-center leading-relaxed max-w-md mx-auto">
+                Honest visibility — companies that review your submission see
+                the same numbers.
+              </p>
             </div>
           )}
 

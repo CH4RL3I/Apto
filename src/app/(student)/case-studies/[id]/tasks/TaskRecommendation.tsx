@@ -24,6 +24,7 @@ interface Props {
   onContinue: () => void;
   showResources: boolean;
   setShowResources: (v: boolean) => void;
+  onTextareaRef?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function computeRecommendationScores(task: RecommendationTask, a: RecommendationAnswer) {
@@ -55,6 +56,7 @@ export function TaskRecommendation({
   onContinue,
   showResources,
   setShowResources,
+  onTextareaRef,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
 
@@ -167,6 +169,7 @@ export function TaskRecommendation({
                 wordLimit={task.textarea.wordLimit}
                 rows={5}
                 disabled={submitted}
+                onTextareaRef={onTextareaRef}
               />
               {error && (
                 <p className="mt-2 text-[12px] text-coral-700">{error}</p>
