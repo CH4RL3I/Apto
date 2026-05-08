@@ -635,9 +635,12 @@ function ChallengeCard() {
         Help EcoThread identify new markets and a go-to-market strategy for their next phase of growth.
       </p>
       <div className="mt-5 flex items-end justify-between gap-3 border-t border-sage-mist-2 pt-4">
-        <div>
-          <div className="stat-num text-xl text-charcoal">$1,000</div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Prize pool</div>
+        <div className="flex items-center gap-2">
+          <GraduationCap className="h-4 w-4 shrink-0 text-sage" strokeWidth={1.75} />
+          <div>
+            <div className="text-xs font-bold text-charcoal">Certificate awarded</div>
+            <div className="text-[10px] text-charcoal-2">Upon case completion</div>
+          </div>
         </div>
         <div>
           <div className="stat-num text-xl text-charcoal">420</div>
