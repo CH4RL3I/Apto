@@ -18,7 +18,7 @@ export default function StudentLoginPage() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
     if (authError) {
@@ -134,7 +134,7 @@ export default function StudentLoginPage() {
             Create an account
           </Link>
         </p>
-        <p className="text-center text-xs text-charcoal-3 mt-2">
+        <p className="text-center text-sm text-charcoal-2 mt-2">
           Hiring?{" "}
           <Link href="/login/company" className="text-sage font-semibold hover:underline">
             Company sign-in

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { withPersistentMaxAge } from "./cookies";
 
 // See client.ts for the fallback rationale — keeps server prerender safe
 // when a Vercel scope is missing env vars.
@@ -22,7 +23,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, withPersistentMaxAge(options))
             );
           } catch {
             // The `setAll` method was called from a Server Component.

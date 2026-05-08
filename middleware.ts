@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { withPersistentMaxAge } from "@/lib/supabase/cookies";
 
 // Placeholder fallbacks let the middleware survive when a Vercel scope
 // (e.g. Preview) is missing the env vars — same pattern as supabase/{client,server}.ts.
@@ -32,7 +33,7 @@ export async function middleware(request: NextRequest) {
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, withPersistentMaxAge(options))
           );
         },
       },

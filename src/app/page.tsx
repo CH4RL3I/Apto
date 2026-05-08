@@ -167,17 +167,9 @@ export default async function Home() {
               </form>
             </>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className="focus-ring rounded-lg px-2 py-1 text-sm font-medium text-charcoal-2 hover:text-charcoal transition-colors"
-              >
-                Log in
-              </Link>
-              <ButtonLink href="/login" variant="primary" size="sm">
-                Get started
-              </ButtonLink>
-            </>
+            <ButtonLink href="/signup" variant="primary" size="sm">
+              Get started
+            </ButtonLink>
           )}
         </div>
       </nav>
