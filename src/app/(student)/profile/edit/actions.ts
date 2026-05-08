@@ -9,7 +9,12 @@ interface ProfileEditInput {
   education: string;
   experience: string[];
   skills: string[];
+  isPublic: boolean;
+  username: string;
+  headline: string;
 }
+
+const USERNAME_RE = /^[a-z0-9-]{3,30}$/;
 
 export async function updateStudentProfile(input: ProfileEditInput) {
   const supabase = await createClient();
@@ -26,6 +31,28 @@ export async function updateStudentProfile(input: ProfileEditInput) {
   const cleanSkills = input.skills
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+  const cleanHeadline = input.headline.trim().slice(0, 200);
+  const cleanUsername = input.username.trim().toLowerCase();
+
+  if (input.isPublic) {
+    if (!cleanUsername) {
+      throw new Error("A username is required to make your profile public.");
+    }
+    if (!USERNAME_RE.test(cleanUsername)) {
+      throw new Error(
+        "Username must be 3–30 characters, lowercase letters, numbers, or hyphens.",
+      );
+    }
+    const { data: taken } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .ilike("username", cleanUsername)
+      .neq("user_id", user.id)
+      .maybeSingle();
+    if (taken) {
+      throw new Error("That username is already taken.");
+    }
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -42,13 +69,25 @@ export async function updateStudentProfile(input: ProfileEditInput) {
     skills: cleanSkills,
   };
 
-  await supabase
+  const profileUpdate: Record<string, unknown> = {
+    cv_parsed: nextCvParsed,
+    cv_skills: cleanSkills,
+    is_public: input.isPublic,
+    headline: cleanHeadline || null,
+  };
+  if (input.isPublic) {
+    profileUpdate.username = cleanUsername;
+  } else if (cleanUsername) {
+    profileUpdate.username = cleanUsername;
+  } else {
+    profileUpdate.username = null;
+  }
+
+  const { error: updateError } = await supabase
     .from("profiles")
-    .update({
-      cv_parsed: nextCvParsed,
-      cv_skills: cleanSkills,
-    })
+    .update(profileUpdate)
     .eq("user_id", user.id);
+  if (updateError) throw new Error(updateError.message);
 
   if (cleanName) {
     await supabase
@@ -59,4 +98,5 @@ export async function updateStudentProfile(input: ProfileEditInput) {
 
   revalidatePath("/dashboard");
   revalidatePath("/profile/edit");
+  if (cleanUsername) revalidatePath(`/u/${cleanUsername}`);
 }

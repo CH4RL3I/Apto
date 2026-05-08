@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { createClient } from "@/lib/supabase/server";
 
 export type StudentNavKey =
   | "home"
@@ -30,11 +31,30 @@ const items: ReadonlyArray<{
   { key: "discover", label: "Discover", href: "/results", icon: Compass },
   { key: "challenges", label: "Challenges", href: "/challenges", icon: Briefcase },
   { key: "companies", label: "Companies", href: "/companies", icon: Building2 },
-  { key: "connections", label: "Connections", href: "/dashboard#invitations", icon: Users },
-  { key: "messages", label: "Messages", href: "/dashboard#invitations", icon: MessageCircle },
+  { key: "connections", label: "Connections", href: "/connections", icon: Users },
+  { key: "messages", label: "Messages", href: "/messages", icon: MessageCircle },
 ];
 
-export function StudentSidebar({ active }: { active: StudentNavKey }) {
+async function getUnreadMessageCount(): Promise<number> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return 0;
+    const { count } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .is("read_at", null)
+      .neq("sender_id", user.id);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function StudentSidebar({ active }: { active: StudentNavKey }) {
+  const unread = await getUnreadMessageCount();
   return (
     <aside className="hidden border-r border-sage-mist-2 bg-chalk/86 p-5 lg:flex lg:flex-col">
       <Link
@@ -49,6 +69,7 @@ export function StudentSidebar({ active }: { active: StudentNavKey }) {
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = item.key === active;
+          const showUnread = item.key === "messages" && unread > 0;
           return (
             <Link
               key={item.key}
@@ -60,7 +81,15 @@ export function StudentSidebar({ active }: { active: StudentNavKey }) {
               }`}
             >
               <Icon className="h-4 w-4" strokeWidth={1.75} />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {showUnread && (
+                <span
+                  aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}
+                  className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-coral px-1.5 text-[10px] font-bold leading-[18px] text-chalk"
+                >
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -11,6 +11,9 @@ interface InitialValues {
   education: string;
   experience: string[];
   skills: string[];
+  isPublic: boolean;
+  username: string;
+  headline: string;
 }
 
 export function ProfileEditForm({ initial }: { initial: InitialValues }) {
@@ -22,6 +25,9 @@ export function ProfileEditForm({ initial }: { initial: InitialValues }) {
   );
   const [skills, setSkills] = useState<string[]>(initial.skills);
   const [skillDraft, setSkillDraft] = useState("");
+  const [isPublic, setIsPublic] = useState(initial.isPublic);
+  const [username, setUsername] = useState(initial.username);
+  const [headline, setHeadline] = useState(initial.headline);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +63,15 @@ export function ProfileEditForm({ initial }: { initial: InitialValues }) {
     setSaving(true);
     setError(null);
     try {
-      await updateStudentProfile({ name, education, experience, skills });
+      await updateStudentProfile({
+        name,
+        education,
+        experience,
+        skills,
+        isPublic,
+        username,
+        headline,
+      });
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -183,6 +197,69 @@ export function ProfileEditForm({ initial }: { initial: InitialValues }) {
           <Button type="button" variant="ghost" size="sm" onClick={addSkill}>
             Add
           </Button>
+        </div>
+      </div>
+
+      <div className="rounded-[14px] bg-chalk p-5 shadow-1">
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div>
+            <span className="eyebrow block">Public profile</span>
+            <p className="mt-1 text-xs text-charcoal-3">
+              When on, anyone with the link can view your name, headline, and
+              skills. Submissions stay private.
+            </p>
+          </div>
+          <label className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-charcoal">
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+              className="h-4 w-4 rounded border-sage-mist-2 text-sage focus-ring"
+            />
+            {isPublic ? "On" : "Off"}
+          </label>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="headline" className="eyebrow mb-1 block">
+              Headline
+            </label>
+            <input
+              id="headline"
+              type="text"
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value)}
+              maxLength={200}
+              className="w-full rounded-[10px] border border-sage-mist-2 bg-chalk px-3 py-2 text-sm text-charcoal focus-ring"
+              placeholder="e.g. CS senior at TUM, building data tools"
+            />
+          </div>
+          <div>
+            <label htmlFor="username" className="eyebrow mb-1 block">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) =>
+                setUsername(
+                  e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9-]/g, "")
+                    .slice(0, 30),
+                )
+              }
+              className="w-full rounded-[10px] border border-sage-mist-2 bg-chalk px-3 py-2 text-sm text-charcoal focus-ring"
+              placeholder="your-handle"
+            />
+            {username && (
+              <p className="mt-1 text-xs text-charcoal-3">
+                Your public profile: apto.app/u/{username}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
