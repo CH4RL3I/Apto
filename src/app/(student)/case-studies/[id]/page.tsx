@@ -8,6 +8,7 @@ import { Markdown } from "@/lib/markdown";
 import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
 import { StudentShell } from "@/components/StudentSidebar";
+import { ChallengeIntro } from "./ChallengeIntro";
 
 export default async function CaseStudyBriefPage({
   params,
@@ -70,6 +71,9 @@ export default async function CaseStudyBriefPage({
           <Pill variant="mist" size="md">{tierLabel}</Pill>
           <Pill variant="mist" size="md"><span className="capitalize">{cs.cluster.replace(/_/g, " ")}</span></Pill>
         </div>
+
+        {/* Background & terminology (optional, role-specific primer) */}
+        {cs.intro && <ChallengeIntro intro={cs.intro} />}
 
         {/* Brief (full markdown body) */}
         <div className="bg-chalk rounded-[14px] shadow-1 p-8 mb-6">
