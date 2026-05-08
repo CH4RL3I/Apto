@@ -95,6 +95,8 @@ export default async function CertificatePage({
   const headlineScore =
     taskScores?.overall ??
     (typeof submission.score === "number" ? submission.score : null);
+  const PASSING = 60;
+  const passed = headlineScore !== null && headlineScore >= PASSING;
 
   return (
     <div className="min-h-screen bg-pale-sage print:bg-white py-10 px-4 print:p-0 print:min-h-0">
@@ -118,20 +120,24 @@ export default async function CertificatePage({
           <div className="flex items-center justify-between gap-4 mb-10">
             <Logo height={32} priority />
             <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal-3">
-              Certificate
+              {passed ? "Certificate" : "Results"}
             </div>
           </div>
 
           <div className="text-center">
-            <div className="eyebrow mb-3">Certificate of Completion</div>
+            <div className="eyebrow mb-3">
+              {passed ? "Certificate of Completion" : "Challenge Results"}
+            </div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
-              This certifies that
+              {passed ? "This certifies that" : "Submission summary for"}
             </h1>
             <p className="mt-6 text-2xl md:text-3xl font-bold text-sage tracking-tight">
               {displayName}
             </p>
             <p className="mt-6 text-base text-charcoal-2 leading-relaxed max-w-xl mx-auto">
-              has successfully completed the Apto challenge
+              {passed
+                ? "has successfully completed the Apto challenge"
+                : "attempted the Apto challenge"}
             </p>
             <p className="mt-3 text-xl md:text-2xl font-bold text-charcoal tracking-tight">
               {challengeTitle}

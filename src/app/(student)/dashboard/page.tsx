@@ -482,22 +482,47 @@ export default async function DashboardPage() {
                                 </div>
                               </div>
                             </div>
-                            {sub.status === "in_progress" ? (
-                              <ButtonLink href={`/case-studies/${sub.case_study_id as string}/exam`} variant="ghost" size="sm">
-                                Resume
-                              </ButtonLink>
-                            ) : sub.status === "submitted" && sub.score == null ? (
-                              <RetryScoringButton submissionId={sub.id as string} />
-                            ) : (
-                              <a
-                                href={`/certificate/${sub.id as string}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="focus-ring inline-flex items-center gap-1 rounded-full border border-sage bg-chalk px-3 py-1.5 text-xs font-semibold text-sage shadow-1 transition-colors hover:bg-pale-sage"
-                              >
-                                Get certificate ↗
-                              </a>
-                            )}
+                            {(() => {
+                              const PASSING = 60;
+                              const overall =
+                                (sub.is_multi_task && sub.task_scores
+                                  ? (sub.task_scores as { overall?: number })
+                                      .overall
+                                  : (sub.score as number | null)) ?? null;
+                              const passed =
+                                overall !== null && overall >= PASSING;
+                              if (sub.status === "in_progress") {
+                                return (
+                                  <ButtonLink
+                                    href={`/case-studies/${sub.case_study_id as string}/exam`}
+                                    variant="ghost"
+                                    size="sm"
+                                  >
+                                    Resume
+                                  </ButtonLink>
+                                );
+                              }
+                              if (
+                                sub.status === "submitted" &&
+                                sub.score == null
+                              ) {
+                                return (
+                                  <RetryScoringButton
+                                    submissionId={sub.id as string}
+                                  />
+                                );
+                              }
+                              return (
+                                <a
+                                  href={`/certificate/${sub.id as string}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="focus-ring inline-flex items-center gap-1 rounded-full border border-sage bg-chalk px-3 py-1.5 text-xs font-semibold text-sage shadow-1 transition-colors hover:bg-pale-sage"
+                                >
+                                  {passed ? "Get certificate ↗" : "View results ↗"}
+                                </a>
+                              );
+                            })()}
                           </div>
                         </article>
                       );
