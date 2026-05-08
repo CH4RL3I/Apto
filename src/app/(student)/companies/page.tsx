@@ -6,6 +6,19 @@ import { CASE_STUDIES, type CaseStudy } from "@/lib/questionnaire/case-studies";
 import { Pill } from "@/components/ui/Pill";
 import { StudentShell } from "@/components/StudentSidebar";
 
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
+
 interface CompanyEntry {
   name: string;
   logoUrl: string;
@@ -54,11 +67,10 @@ export default async function CompaniesPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {companies.map((company) => {
-          const firstCase = company.cases[0];
           return (
             <Link
               key={company.name}
-              href={`/case-studies/${firstCase.id}`}
+              href={`/companies/${slugify(company.name)}`}
               className="group block rounded-[14px] bg-chalk shadow-1 hover:shadow-2 transition-shadow p-5"
             >
               <div className="flex items-start gap-3 mb-3">
