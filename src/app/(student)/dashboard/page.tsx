@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Bell,
   CalendarDays,
   FileText,
   Flame,
@@ -16,6 +15,7 @@ import { Pill } from "@/components/ui/Pill";
 import { ButtonLink } from "@/components/ui/Button";
 import { StudentSidebar } from "@/components/StudentSidebar";
 import { DashboardSearch } from "@/components/DashboardSearch";
+import { NotificationBell } from "@/components/NotificationBell";
 import { RetryScoringButton } from "@/components/RetryScoringButton";
 import { InfoTooltip, IMPACT_SCORE_TOOLTIP } from "@/components/ui/InfoTooltip";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
@@ -86,7 +86,14 @@ export default async function DashboardPage() {
     .from("invitations")
     .select("*, company:companies(*), submission:submissions(*)")
     .eq("user_id", user.id)
-    .order("sent_at", { ascending: false });
+    .order("sent_at", { ascending: false })
+    .limit(5);
+
+  const { count: unreadNotificationsCount } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .is("read_at", null);
 
   const firstName = userData?.name ? userData.name.split(" ")[0] : "there";
   const initials = (() => {
@@ -211,10 +218,7 @@ export default async function DashboardPage() {
             <DashboardSearch />
 
             <div className="flex items-center gap-3 self-end md:self-auto">
-              <button className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full border border-sage-mist-2 bg-chalk text-charcoal-2 shadow-1 transition-colors hover:bg-pale-sage">
-                <Bell className="h-4 w-4" strokeWidth={1.75} />
-                <span className="sr-only">Notifications</span>
-              </button>
+              <NotificationBell userId={user.id} initialUnreadCount={unreadNotificationsCount ?? 0} />
               <details className="apto-user-menu group relative">
                 <summary className="focus-ring flex cursor-pointer list-none items-center gap-2 rounded-full border border-sage-mist-2 bg-chalk py-1 pr-3 pl-1 shadow-1 transition-colors hover:bg-pale-sage [&::-webkit-details-marker]:hidden">
                   <span
@@ -409,7 +413,9 @@ export default async function DashboardPage() {
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div>
                         <div className="eyebrow mb-2">Match made</div>
-                        <h3 className="text-lg font-bold tracking-tight text-charcoal">No invitations yet.</h3>
+                        <h3 className="text-lg font-bold tracking-tight text-charcoal">
+                          No invitations yet — keep submitting to challenges.
+                        </h3>
                         <p className="mt-2 text-sm text-charcoal-2">
                           Complete a case study to turn your profile into proof companies can review.
                         </p>
