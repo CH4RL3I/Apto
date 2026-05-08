@@ -26,7 +26,7 @@ export function TaskScoreResult({ taskNumber, dims, onContinue, continueLabel }:
         {dims.map((d) => (
           <div key={d.label}>
             <div className="flex items-center gap-3">
-              <div className="w-32 text-[12px] font-medium text-charcoal-2">
+              <div className="w-24 sm:w-32 text-[12px] font-medium text-charcoal-2">
                 {d.label}
               </div>
               <div className="flex-1 h-2 rounded-full bg-sage-mist-2 overflow-hidden">
@@ -39,7 +39,7 @@ export function TaskScoreResult({ taskNumber, dims, onContinue, continueLabel }:
                 {(d.score / 10).toFixed(1)}
               </div>
             </div>
-            <p className="mt-1.5 ml-32 text-[12px] text-charcoal-2 leading-relaxed">
+            <p className="mt-1.5 ml-0 sm:ml-32 text-[12px] text-charcoal-2 leading-relaxed">
               {d.feedback}
             </p>
           </div>
@@ -49,7 +49,7 @@ export function TaskScoreResult({ taskNumber, dims, onContinue, continueLabel }:
         <button
           type="button"
           onClick={onContinue}
-          className="rounded-lg bg-charcoal px-5 py-2.5 text-[13px] font-semibold text-chalk hover:bg-sage transition-colors"
+          className="w-full rounded-lg bg-charcoal px-5 py-2.5 text-[13px] font-semibold text-chalk hover:bg-sage transition-colors sm:w-auto"
         >
           {continueLabel} →
         </button>

@@ -197,11 +197,11 @@ export function TaskRecommendation({
         </div>
 
         {!submitted && !showResources && (
-          <div className="flex items-center justify-end gap-2 border-t border-sage-mist-2 bg-pale-sage/40 px-5 py-3">
+          <div className="flex flex-col gap-2 border-t border-sage-mist-2 bg-pale-sage/40 px-5 py-3 sm:flex-row sm:items-center sm:justify-end">
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-lg bg-charcoal px-5 py-2.5 text-[13px] font-semibold text-chalk hover:bg-sage transition-colors"
+              className="w-full rounded-lg bg-charcoal px-5 py-2.5 text-[13px] font-semibold text-chalk hover:bg-sage transition-colors sm:w-auto"
             >
               Submit &amp; see score →
             </button>

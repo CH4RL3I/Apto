@@ -6,7 +6,7 @@ interface Props {
 export function DataTable({ columns, rows }: Props) {
   return (
     <div className="overflow-x-auto mb-4">
-      <table className="w-full border-collapse text-xs">
+      <table className="w-full min-w-[560px] border-collapse text-xs">
         <thead>
           <tr className="bg-pale-sage">
             {columns.map((col, i) => (

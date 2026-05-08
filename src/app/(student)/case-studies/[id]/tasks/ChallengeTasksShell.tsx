@@ -357,7 +357,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
       style={{ ...brandStyle, ...rootBgStyle }}
     >
       {/* Top bar */}
-      <nav className="sticky top-0 z-30 flex h-[52px] items-center justify-between bg-charcoal px-6">
+      <nav className="sticky top-0 z-30 flex h-[52px] items-center justify-between bg-charcoal px-4 sm:px-6">
         <Link href="/dashboard" className="focus-ring inline-flex">
           <Logo variant="dark" height={20} priority />
         </Link>
@@ -378,9 +378,9 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
         <HonorCodeModal onAccept={() => setHonorAccepted(true)} />
       )}
 
-      <div className="grid lg:grid-cols-[280px_minmax(0,1fr)] min-h-[calc(100vh-52px)]">
-        {/* Sidebar */}
-        <aside className="border-r border-sage-mist-2 bg-chalk lg:sticky lg:top-[52px] lg:h-[calc(100vh-52px)] lg:overflow-y-auto">
+      <div className="flex flex-col-reverse lg:grid lg:grid-cols-[280px_minmax(0,1fr)] min-h-[calc(100vh-52px)]">
+        {/* Sidebar — below main on mobile, left column on lg+ */}
+        <aside className="border-t border-sage-mist-2 lg:border-t-0 lg:border-r bg-chalk lg:sticky lg:top-[52px] lg:h-[calc(100vh-52px)] lg:overflow-y-auto">
           <div className="border-b border-sage-mist-2 p-5">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -503,17 +503,17 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
         </aside>
 
         {/* Main */}
-        <main className="px-6 py-7 md:px-8 w-full">
+        <main className="px-4 py-5 sm:px-6 sm:py-7 md:px-8 w-full">
          <div className="mx-auto w-full max-w-3xl">
           {/* Progress banner */}
-          <div className="relative mb-5 flex items-center justify-between overflow-hidden rounded-[14px] bg-charcoal px-5 py-4">
+          <div className="relative mb-5 flex flex-col gap-3 overflow-hidden rounded-[14px] bg-charcoal px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             {brand && (
               <span
                 aria-hidden
                 className="absolute inset-x-0 top-0 h-[3px] bg-[var(--brand-primary)]"
               />
             )}
-            <div>
+            <div className="min-w-0">
               <div className="text-[13px] text-chalk/70">
                 <strong className="font-semibold text-chalk">
                   {caseStudy.companyName ?? "Apto"} Challenge
@@ -526,7 +526,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
                   : `Task ${state.currentIndex + 1} of ${tasks.length} · Complete all tasks to earn your certificate`}
               </div>
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 self-start sm:self-auto">
               {tasks.map((_, i) => (
                 <span
                   key={i}
@@ -558,7 +558,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
                   {caseStudy.companyName ?? "Apto"} ·{" "}
                   {caseStudy.companyBlock?.primaryTag ?? "Challenge"}
                 </div>
-                <h1 className="text-2xl md:text-[26px] font-bold tracking-tight text-charcoal leading-tight">
+                <h1 className="text-xl sm:text-2xl md:text-[26px] font-bold tracking-tight text-charcoal leading-tight">
                   {caseStudy.title}
                 </h1>
                 <p className="mt-2 text-sm text-charcoal-2">
@@ -698,7 +698,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
               <div className="text-right">
                 <Link
                   href="/results"
-                  className="focus-ring inline-flex items-center gap-1 rounded-lg border border-sage-mist-2 bg-chalk px-4 py-2.5 text-[13px] font-semibold text-charcoal-2 hover:border-sage hover:text-sage transition-colors"
+                  className="focus-ring inline-flex w-full items-center justify-center gap-1 rounded-lg border border-sage-mist-2 bg-chalk px-4 py-2.5 text-[13px] font-semibold text-charcoal-2 hover:border-sage hover:text-sage transition-colors sm:w-auto"
                 >
                   Explore similar challenges →
                 </Link>
