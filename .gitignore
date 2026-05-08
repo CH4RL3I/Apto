@@ -17,3 +17,9 @@ tsconfig.tsbuildinfo
 # Supabase CLI local cache
 supabase/.temp/
 supabase/.branches/
+
+# Playwright
+e2e-report/
+test-results/
+playwright/.cache/
+playwright-report/
