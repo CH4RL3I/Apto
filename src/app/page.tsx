@@ -37,26 +37,26 @@ const essence = [
   {
     icon: Compass,
     eyebrow: "Guided exploration",
-    title: "Discover paths that fit you.",
-    copy: "Helping students discover paths that fit their strengths and interests.",
+    title: "Discover paths that fit you",
+    copy: "Helping students discover paths that fit their strengths and interests",
   },
   {
     icon: Users,
     eyebrow: "Practical clarity",
-    title: "See the real work.",
-    copy: "Helping students understand what real work looks like and how to move toward it.",
+    title: "See the real work",
+    copy: "Helping students understand what real work looks like and how to move toward it",
   },
   {
     icon: Leaf,
     eyebrow: "Real connections",
-    title: "Meet real companies.",
-    copy: "Connecting top talent with real companies through authentic, case-study challenges.",
+    title: "Meet real companies",
+    copy: "Connecting top talent with real companies through authentic, case-study challenges",
   },
   {
     icon: Target,
     eyebrow: "Real impact",
-    title: "Build real proof.",
-    copy: "Real-world learning. Real impact. Real opportunities.",
+    title: "Build real proof",
+    copy: "Real-world learning. Real impact. Real opportunities",
   },
 ];
 
@@ -98,21 +98,21 @@ const steps = [
     step: "01",
     title: "Explore with context",
     description:
-      "Answer a short questionnaire and see role matches explained in plain language, not vague personality labels.",
+      "Answer a short questionnaire and see role matches explained in plain language, not vague personality labels",
     icon: Compass,
   },
   {
     step: "02",
     title: "Understand the work",
     description:
-      "Open case studies inspired by real business problems so the day-to-day feels tangible before you commit.",
+      "Open case studies inspired by real business problems so the day-to-day feels tangible before you commit",
     icon: Briefcase,
   },
   {
     step: "03",
     title: "Achieve with proof",
     description:
-      "Build a portfolio of scored submissions that can turn curiosity into interviews and concrete next steps.",
+      "Build a portfolio of scored submissions that can turn curiosity into interviews and concrete next steps. A certificate is awarded upon completion",
     icon: Target,
   },
 ];
@@ -141,6 +141,12 @@ export default async function Home() {
         <Link href="/" aria-label="Apto home" className="inline-flex items-center focus-ring rounded-xl">
           <Logo height={38} priority />
         </Link>
+        <div className="hidden md:flex items-center gap-6 text-sm text-charcoal-2">
+          <Link href="/login" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Student log in</Link>
+          <Link href="/login/company" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Company log in</Link>
+          <Link href="#brand-essence" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Brand essence</Link>
+          <Link href="#how-it-works" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">How it works</Link>
+        </div>
         <div className="flex items-center gap-3">
           {user ? (
             <>
@@ -175,32 +181,24 @@ export default async function Home() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 pb-20 pt-8 md:pt-14">
+      <main className="max-w-7xl mx-auto px-6 pb-20 pt-4 md:pt-6">
         <section className="grid lg:grid-cols-[0.92fr_1.08fr] gap-10 lg:gap-14 items-center">
           <div className="fade-in relative">
             <span className="apto-spark absolute -left-6 top-2 hidden text-3xl md:block" aria-hidden />
 
-            <Pill
-              variant="sage"
-              size="md"
-              icon={<Sparkles className="w-3.5 h-3.5" strokeWidth={1.75} />}
-            >
-              Career exploration, made practical
-            </Pill>
-
             <h1
-              className="mt-7 max-w-3xl text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.04] text-charcoal"
+              className="max-w-3xl text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.04] text-charcoal"
               style={{ textWrap: "balance" }}
             >
-              Explore what fits. Understand the work. Achieve with proof.
+              The Most Realistic Career Exploration Tool
             </h1>
 
             <p className="mt-6 max-w-xl text-lg md:text-xl italic font-medium text-sage-700">
-              Guiding curious minds toward real-world success.
+              Guiding curious minds toward real-world success
             </p>
 
             <p className="mt-4 max-w-2xl text-base md:text-lg leading-relaxed text-charcoal-2">
-              Apto turns career discovery into real-world practice: students get matched to paths, solve company-style challenges, and build evidence of what they can do.
+              Apto turns career discovery into real-world practice: students get matched to paths, solve company-style challenges, and build evidence of what they can do
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -229,12 +227,9 @@ export default async function Home() {
             <div className="max-w-2xl">
               <div className="eyebrow mb-3">Brand essence</div>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
-                Four ideas guide everything we build.
+                Four ideas guide everything we build
               </h2>
             </div>
-            <p className="max-w-md text-sm md:text-base leading-relaxed text-charcoal-2">
-              From the first questionnaire to the final interview invitation — these promises hold throughout.
-            </p>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -262,12 +257,9 @@ export default async function Home() {
             <div>
               <div className="eyebrow mb-3">Experience</div>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
-                Less generic discovery. More real momentum.
+                Less generic discovery. More real momentum
               </h2>
             </div>
-            <p className="max-w-xl text-sm md:text-base leading-relaxed text-charcoal-2">
-              The visual system now mirrors the brand board: soft chalk surfaces, sage guidance, coral achievement moments, line icons, and a clear product rhythm.
-            </p>
           </div>
 
           <div className="mt-10 grid md:grid-cols-3 gap-5">
@@ -296,14 +288,14 @@ export default async function Home() {
           <div className="mb-8 md:mb-10 max-w-3xl">
             <div className="eyebrow mb-3">Inside Apto</div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
-              A working product. Not a deck.
+              A working product. Not a deck
             </h2>
             <p className="mt-3 max-w-xl text-charcoal-2">
-              Real challenges from real companies, profiles built from real work, and matches you can act on.
+              Real challenges from real companies, profiles built from real work, and matches you can act on
             </p>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2">
             <ChallengeCard />
             <StudentProfileCard />
             <MatchMadeCard />
@@ -317,12 +309,9 @@ export default async function Home() {
               <div>
                 <div className="eyebrow mb-3">Built around real work</div>
                 <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-charcoal">
-                  No vanity metrics. Just real briefs, real industries, real proof.
+                  No vanity metrics. Just real briefs, real industries, real proof
                 </h2>
-                <p className="mt-3 max-w-md text-sm md:text-base leading-relaxed text-charcoal-2">
-                  Apto is an MVP. We&rsquo;re not going to pretend we have thousands of users yet. Here&rsquo;s what we actually have on day one.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-1.5">
+                <div className="mt-4 flex flex-wrap gap-1.5">
                   {[
                     "Product",
                     "Data",
@@ -371,7 +360,7 @@ export default async function Home() {
                     What makes a brief
                   </div>
                   <p className="mt-3 text-sm leading-relaxed text-charcoal-2">
-                    Open-ended company-style problems. No multiple choice, no trivia. You write a real answer; we score it like a hiring panel would.
+                    Open-ended company-style problems. No multiple choice, no trivia. You write a real answer; we score it like a hiring panel would
                   </p>
                 </div>
               </div>
@@ -388,10 +377,10 @@ export default async function Home() {
                 apto
               </div>
               <h2 className="max-w-xs text-3xl font-bold leading-tight tracking-tight">
-                Real challenges. Real companies. Real you.
+                Real challenges. Real companies. Real you
               </h2>
               <p className="mt-5 text-sm leading-relaxed text-chalk/78">
-                A product story with a clear visual hook: students follow a guided path from curiosity to opportunity.
+                A product story with a clear visual hook: students follow a guided path from curiosity to opportunity
               </p>
             </div>
           </div>
@@ -405,7 +394,7 @@ export default async function Home() {
               <div className="relative z-10 max-w-xs">
                 <Logo variant="mark" height={46} />
                 <h2 className="mt-8 text-3xl font-bold leading-tight tracking-tight text-charcoal">
-                  Your path. Real world. Endless possibilities.
+                  Your path. Real world. Endless possibilities
                 </h2>
               </div>
             </div>
@@ -415,7 +404,7 @@ export default async function Home() {
               <span className="apto-spark absolute right-10 top-16 text-5xl" aria-hidden="true" />
               <div className="relative z-10">
                 <h2 className="text-3xl font-bold leading-tight tracking-tight">
-                  Learn by doing. Grow by solving. Lead tomorrow.
+                  Learn by doing. Grow by solving. Lead tomorrow
                 </h2>
                 <div className="tagline-caps mt-12 text-[10px] leading-6 text-chalk/74">
                   Explore.<br />Understand.<br /><span className="text-coral">Achieve.</span>
@@ -437,10 +426,10 @@ export default async function Home() {
           <div>
             <div className="eyebrow mb-4 text-chalk/70">Start here</div>
             <h2 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight">
-              Turn student potential into real work.
+              Turn student potential into real work
             </h2>
             <p className="mt-5 max-w-md text-base md:text-lg leading-relaxed text-pale-sage">
-              Explore paths, understand roles, and prove your skills through practical challenges from real companies.
+              Explore paths, understand roles, and prove your skills through practical challenges from real companies
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <ButtonLink href="/signup" variant="coral" size="lg" icon={<ArrowRight className="h-4 w-4" strokeWidth={1.75} />}>
@@ -458,7 +447,7 @@ export default async function Home() {
                 Explore.<br />Understand.<br /><span className="text-coral">Achieve.</span>
               </div>
               <p className="mt-6 text-base leading-relaxed text-pale-sage">
-                Three steps. One real path. From curious student to interview-ready candidate.
+                Three steps. One real path. From curious student to interview-ready candidate
               </p>
             </div>
           </div>
@@ -470,13 +459,6 @@ export default async function Home() {
           <div className="flex items-center gap-3">
             <Logo height={26} variant="lockup" />
           </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-charcoal-2">
-            <Link href="/login" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Student log in</Link>
-            <Link href="/login/company" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Company log in</Link>
-            <Link href="#brand-essence" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Brand essence</Link>
-            <Link href="#how-it-works" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">How it works</Link>
-          </div>
-          <span className="text-xs text-charcoal-3">&copy; 2026 Apto. Built at START Unicorn Lisbon.</span>
         </div>
       </footer>
     </div>
@@ -646,19 +628,24 @@ function ChallengeCard() {
         </span>
       </div>
       <p className="mt-3 text-xs leading-relaxed text-charcoal-2">
-        Help EcoThread identify new markets and a go-to-market strategy for their next phase of growth.
+        Help EcoThread identify new markets and a go-to-market strategy for their next phase of growth
       </p>
-      <div className="mt-5 flex items-end justify-between gap-3 border-t border-sage-mist-2 pt-4">
-        <div>
-          <div className="stat-num text-xl text-charcoal">$1,000</div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Prize pool</div>
+      <div className="mt-auto pt-5 border-t border-sage-mist-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="h-4 w-4 shrink-0 text-sage" strokeWidth={1.75} />
+          <div>
+            <div className="text-xs font-bold text-charcoal">Certificate awarded</div>
+            <div className="text-[10px] text-charcoal-2">Upon case completion</div>
+          </div>
         </div>
-        <div>
-          <div className="stat-num text-xl text-charcoal">420</div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Joined</div>
-        </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sage text-chalk shadow-1">
-          <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="stat-num text-xl text-charcoal">420</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Joined</div>
+          </div>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sage text-chalk shadow-1">
+            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+          </div>
         </div>
       </div>
     </article>
@@ -673,7 +660,7 @@ function StudentProfileCard() {
           <UserCircle2 className="h-7 w-7" strokeWidth={1.5} />
         </div>
         <div className="min-w-0">
-          <h3 className="truncate text-base font-bold tracking-tight text-charcoal">Maya Sharma</h3>
+          <h3 className="text-base font-bold tracking-tight text-charcoal">Maya Sharma</h3>
           <p className="text-xs font-semibold text-sage">Data &amp; Product Enthusiast</p>
           <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-charcoal-2">
             <MapPin className="h-3 w-3" strokeWidth={1.75} />
@@ -688,7 +675,7 @@ function StudentProfileCard() {
           </span>
         ))}
       </div>
-      <div className="mt-5 grid grid-cols-3 gap-2 border-t border-sage-mist-2 pt-4 text-center">
+      <div className="mt-auto pt-5 grid grid-cols-3 gap-2 border-t border-sage-mist-2 text-center">
         <div>
           <div className="stat-num text-lg text-charcoal">8</div>
           <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-charcoal-3">Challenges</div>
@@ -713,7 +700,7 @@ function MatchMadeCard() {
       <div className="eyebrow mb-2">Match made</div>
       <h3 className="text-lg font-bold tracking-tight text-charcoal">Great match!</h3>
       <p className="mt-1 text-xs text-charcoal-2">
-        You and Amplitude are a great fit based on your last submission.
+        You and Amplitude are a great fit based on your last submission
       </p>
       <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-chalk px-3 py-1.5 text-sm font-bold text-charcoal shadow-1 self-start">
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-coral-100 text-coral-700">
@@ -728,7 +715,7 @@ function MatchMadeCard() {
           </span>
         ))}
       </div>
-      <div className="mt-5 flex items-center gap-3 border-t border-sage/30 pt-4">
+      <div className="mt-auto pt-5 flex items-center gap-3 border-t border-sage/30">
         <ButtonLink href="/login" variant="coral" size="sm" className="flex-1 justify-center">
           View opportunity
         </ButtonLink>
@@ -770,9 +757,9 @@ function CompanyPreviewCard() {
         </div>
       </div>
       <p className="mt-4 text-xs leading-relaxed text-charcoal-2">
-        Work on high-impact problems alongside global teams of senior strategists.
+        Work on high-impact problems alongside global teams of senior strategists
       </p>
-      <div className="mt-5 border-t border-sage-mist-2 pt-4">
+      <div className="mt-auto pt-5 border-t border-sage-mist-2">
         <ButtonLink href="/login" variant="primary" size="sm" className="w-full justify-center">
           View open challenges
         </ButtonLink>
