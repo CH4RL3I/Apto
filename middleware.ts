@@ -56,9 +56,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect logged-in users away from auth pages
-  const authPaths = ["/login", "/login/company", "/signup", "/signup/company"];
-  if (authPaths.includes(request.nextUrl.pathname) && user) {
+  // Redirect logged-in users away from auth pages and the public landing.
+  // Dashboard server component re-routes company users to /portal, so
+  // sending everyone to /dashboard here is fine.
+  const redirectAuthedAwayFrom = [
+    "/",
+    "/login",
+    "/login/company",
+    "/signup",
+    "/signup/company",
+  ];
+  if (redirectAuthedAwayFrom.includes(request.nextUrl.pathname) && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
