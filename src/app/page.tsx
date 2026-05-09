@@ -143,8 +143,12 @@ export default async function Home() {
           <Logo height={38} priority />
         </Link>
         <div className="hidden md:flex items-center gap-6 text-sm text-charcoal-2">
-          <Link href="/login" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Student log in</Link>
-          <Link href="/login/company" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Company log in</Link>
+          {!user && (
+            <>
+              <Link href="/login" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Student log in</Link>
+              <Link href="/login/company" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Company log in</Link>
+            </>
+          )}
           <Link href="#brand-essence" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">Brand essence</Link>
           <Link href="#how-it-works" className="focus-ring rounded px-1 py-0.5 hover:text-charcoal">How it works</Link>
         </div>
