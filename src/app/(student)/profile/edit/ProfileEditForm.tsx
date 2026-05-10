@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X } from "lucide-react";
+import { AlertTriangle, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { updateStudentProfile } from "./actions";
+import { deleteMyAccount, updateStudentProfile } from "./actions";
 
 interface InitialValues {
   name: string;
@@ -83,6 +83,7 @@ export function ProfileEditForm({ initial }: { initial: InitialValues }) {
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="rounded-[10px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -278,5 +279,163 @@ export function ProfileEditForm({ initial }: { initial: InitialValues }) {
         </Button>
       </div>
     </form>
+
+    <DangerZone />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Danger zone — account deletion
+// ---------------------------------------------------------------------------
+
+function DangerZone() {
+  const [open, setOpen] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canSubmit = confirm === "DELETE" && !pending;
+
+  function close() {
+    if (pending) return;
+    setOpen(false);
+    setConfirm("");
+    setError(null);
+  }
+
+  async function handleDelete() {
+    setPending(true);
+    setError(null);
+    try {
+      const res = await deleteMyAccount("DELETE");
+      if (!res.ok) {
+        setError(res.error ?? "Something went wrong. Please try again.");
+        setPending(false);
+        return;
+      }
+      // Server cleared the session cookies. Hard navigate to "/" so any
+      // cached client state is dropped.
+      window.location.assign("/");
+    } catch (err) {
+      console.error(err);
+      setError(
+        err instanceof Error ? err.message : "Something went wrong.",
+      );
+      setPending(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="mt-10 rounded-[14px] border-2 border-coral/50 bg-coral-100/40 p-5 shadow-1">
+        <div className="mb-3 flex items-center gap-2">
+          <AlertTriangle
+            className="h-4 w-4 text-coral-700"
+            strokeWidth={2.25}
+          />
+          <span className="eyebrow text-coral-700">Danger zone</span>
+        </div>
+        <h2 className="mb-2 text-base font-bold text-charcoal">
+          Delete account
+        </h2>
+        <p className="mb-4 text-sm leading-relaxed text-charcoal-2">
+          Permanently delete your Apto account, including your profile, CV,
+          submissions, connections, messages, certificates, notifications and
+          invitations. This action is permanent and cannot be undone.
+        </p>
+        <Button
+          type="button"
+          variant="coral"
+          size="md"
+          onClick={() => setOpen(true)}
+        >
+          Delete my account
+        </Button>
+      </div>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/40 px-4"
+          onClick={close}
+        >
+          <div
+            className="w-full max-w-md rounded-[14px] bg-chalk p-6 shadow-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <AlertTriangle
+                className="h-5 w-5 text-coral-700"
+                strokeWidth={2.25}
+              />
+              <h3
+                id="delete-account-title"
+                className="text-lg font-bold text-charcoal"
+              >
+                Permanently delete your account?
+              </h3>
+            </div>
+            <p className="mb-3 text-sm leading-relaxed text-charcoal-2">
+              The following will be erased: your profile, CV, submissions,
+              connections, messages, certificates, notifications and
+              invitations.
+            </p>
+            <p className="mb-4 text-sm font-semibold text-coral-700">
+              This cannot be undone.
+            </p>
+
+            <label
+              htmlFor="delete-confirm"
+              className="eyebrow mb-2 block"
+            >
+              Type DELETE to confirm
+            </label>
+            <input
+              id="delete-confirm"
+              type="text"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              placeholder="DELETE"
+              disabled={pending}
+              className="w-full rounded-[10px] border border-sage-mist-2 bg-chalk px-3 py-2 text-sm text-charcoal focus-ring"
+            />
+
+            {error && (
+              <div className="mt-3 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                onClick={close}
+                disabled={pending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="coral"
+                size="md"
+                onClick={handleDelete}
+                disabled={!canSubmit}
+              >
+                {pending ? "Deleting…" : "Delete forever"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
