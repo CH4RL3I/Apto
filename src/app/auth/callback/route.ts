@@ -19,6 +19,8 @@ export async function GET(request: NextRequest) {
     rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
       ? rawNext
       : "/dashboard";
+  const requestedRole: "student" | "company" =
+    searchParams.get("role") === "company" ? "company" : "student";
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login`);
@@ -67,9 +69,11 @@ export async function GET(request: NextRequest) {
     return response;
   };
 
-  // OAuth path: ensure a public.users + profiles row exists. We always
-  // default to role='student' for OAuth — companies sign up via the
-  // /signup/company form which uses email + password.
+  // OAuth path: ensure a public.users + profiles row exists. The `role`
+  // query param (set by the login page the user came from) decides whether
+  // the new row is a student or a company — this fixes the bug where a
+  // Google sign-in from /login/company was silently created as a student
+  // and bounced into /upload-cv.
   const { data: existingUser } = await supabase
     .from("users")
     .select("id, role")
@@ -85,10 +89,12 @@ export async function GET(request: NextRequest) {
         user.user_metadata?.name ||
         null,
       avatar_url: user.user_metadata?.avatar_url || null,
-      role: "student",
+      role: requestedRole,
     });
-    await supabase.from("profiles").insert({ user_id: user.id });
-    return redirectTo(next);
+    if (requestedRole === "student") {
+      await supabase.from("profiles").insert({ user_id: user.id });
+    }
+    return redirectTo(requestedRole === "company" ? "/portal" : next);
   }
 
   if (existingUser.role === "company") {

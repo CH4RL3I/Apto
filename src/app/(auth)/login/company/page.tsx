@@ -18,7 +18,7 @@ export default function CompanyLoginPage() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/portal`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/portal&role=company`,
       },
     });
     if (authError) {
