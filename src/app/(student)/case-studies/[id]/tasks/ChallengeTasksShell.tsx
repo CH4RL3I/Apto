@@ -98,6 +98,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
   const [serverScores, setServerScores] = useState<TaskScores | null>(null);
   const [scoringError, setScoringError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
+  const [persistFailed, setPersistFailed] = useState(false);
   const completionTriggered = useRef(false);
 
   // Integrity tracking — proctor-style telemetry. Honest UX, not gotcha.
@@ -271,23 +272,47 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.completed, liveScores, state.curveball.stanceId]);
 
+  const runScoring = useMemo(
+    () => async () => {
+      if (!submissionId) return;
+      setScoring(true);
+      setScoringError(null);
+      setPersistFailed(false);
+      const finalSignals = finalizeIntegrity();
+      try {
+        const result = await completeMultiTaskSubmission(
+          submissionId,
+          finalSignals as unknown as Record<string, unknown>,
+        );
+        if (result.scores) setServerScores(result.scores);
+        if (!result.ok) {
+          setScoringError(
+            result.errorMessage ??
+              "Scoring is taking longer than usual. Your responses are saved and your preliminary scores below are based on your task choices. Real Gemini scoring will run in the background — refresh your dashboard in a minute or check your certificate.",
+          );
+          if (result.errorCode === "PERSIST_FAILED") setPersistFailed(true);
+        }
+      } catch (err) {
+        // Should be rare now that the action returns a structured result,
+        // but keep a safety net so we never surface Next.js framework
+        // internals to the user.
+        console.error("completeMultiTaskSubmission threw unexpectedly", err);
+        setScoringError(
+          "Scoring is taking longer than usual. Your responses are saved and your preliminary scores below are based on your task choices. Real Gemini scoring will run in the background — refresh your dashboard in a minute or check your certificate.",
+        );
+      } finally {
+        setScoring(false);
+      }
+    },
+    [submissionId, finalizeIntegrity],
+  );
+
   useEffect(() => {
     if (!state.completed || !submissionId) return;
     if (completionTriggered.current) return;
     completionTriggered.current = true;
-    setScoring(true);
-    setScoringError(null);
-    const finalSignals = finalizeIntegrity();
-    completeMultiTaskSubmission(submissionId, finalSignals as unknown as Record<string, unknown>)
-      .then(({ scores }) => setServerScores(scores))
-      .catch((err) => {
-        console.error("completeMultiTaskSubmission failed", err);
-        setScoringError(
-          err instanceof Error ? err.message : "Scoring failed",
-        );
-      })
-      .finally(() => setScoring(false));
-  }, [state.completed, submissionId, finalizeIntegrity]);
+    runScoring();
+  }, [state.completed, submissionId, runScoring]);
 
   // Persist honor-code acknowledgement on first acceptance once we have a row.
   useEffect(() => {
@@ -677,8 +702,21 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
                 </div>
               )}
               {scoringError && (
-                <div className="rounded-[14px] border border-coral-200 bg-coral-50 px-5 py-4 text-[12px] text-coral-700">
-                  Scoring failed: {scoringError}. Showing preliminary scores.
+                <div className="rounded-[14px] border border-coral-200 bg-coral-50 px-5 py-4 text-[12px] text-coral-700 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">
+                      Scoring is taking longer than usual.
+                    </div>
+                    <div className="leading-relaxed">{scoringError}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={runScoring}
+                    disabled={scoring}
+                    className="flex-none rounded-lg border border-coral-200 bg-chalk px-3 py-2 text-[12px] font-semibold text-coral-700 hover:bg-coral-50 disabled:opacity-50 focus-ring"
+                  >
+                    {scoring ? "Retrying…" : "Retry scoring"}
+                  </button>
                 </div>
               )}
               <FinalScoreCard
@@ -689,7 +727,19 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
               />
               <CertificateBanner
                 challengeTitle={caseStudy.companyName ?? "Apto"}
-                submissionId={serverScores ? submissionId : null}
+                submissionId={
+                  serverScores && !persistFailed && !scoringError
+                    ? submissionId
+                    : null
+                }
+                state={
+                  scoring
+                    ? "saving"
+                    : serverScores && !persistFailed && !scoringError
+                    ? "ready"
+                    : "failed"
+                }
+                onRetry={runScoring}
               />
               <ApplyWithCertificate
                 companyName={caseStudy.companyName ?? "Apto"}
