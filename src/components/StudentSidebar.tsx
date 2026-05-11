@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { ConnectionsPendingBadge } from "@/components/ConnectionsPendingBadge";
 import { createClient } from "@/lib/supabase/server";
 
 export type StudentNavKey =
@@ -56,8 +57,29 @@ async function getUnreadMessageCount(): Promise<number> {
   }
 }
 
+async function getPendingConnectionCount(): Promise<number> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return 0;
+    const { count } = await supabase
+      .from("connections")
+      .select("id", { count: "exact", head: true })
+      .eq("recipient_id", user.id)
+      .eq("status", "pending");
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export async function StudentSidebar({ active }: { active: StudentNavKey }) {
-  const unread = await getUnreadMessageCount();
+  const [unread, pendingConnections] = await Promise.all([
+    getUnreadMessageCount(),
+    getPendingConnectionCount(),
+  ]);
   return (
     <aside className="hidden border-r border-sage-mist-2 bg-chalk/86 p-5 lg:flex lg:flex-col">
       <Link
@@ -92,6 +114,9 @@ export async function StudentSidebar({ active }: { active: StudentNavKey }) {
                 >
                   {unread > 9 ? "9+" : unread}
                 </span>
+              )}
+              {item.key === "connections" && (
+                <ConnectionsPendingBadge initialCount={pendingConnections} />
               )}
             </Link>
           );
