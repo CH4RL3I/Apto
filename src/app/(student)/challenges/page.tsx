@@ -18,6 +18,30 @@ export default async function ChallengesPage() {
     a.title.localeCompare(b.title),
   );
 
+  // Map each case study slug to the viewer's most-relevant submission status
+  // so the Completed / In progress segments reflect real state.
+  const { data: subs } = await supabase
+    .from("submissions")
+    .select("case_study_id, status")
+    .eq("user_id", user.id);
+
+  const statusRank: Record<string, number> = {
+    in_progress: 1,
+    submitted: 2,
+    scored: 3,
+    reviewed: 4,
+    shortlisted: 5,
+    rejected: 0,
+  };
+  const submissionStatuses: Record<string, string> = {};
+  for (const row of subs ?? []) {
+    const csId = row.case_study_id as string;
+    const status = row.status as string;
+    const incoming = statusRank[status] ?? -1;
+    const current = statusRank[submissionStatuses[csId]] ?? -1;
+    if (incoming > current) submissionStatuses[csId] = status;
+  }
+
   return (
     <StudentShell active="challenges">
       <Suspense
@@ -34,7 +58,7 @@ export default async function ChallengesPage() {
           </div>
         }
       >
-        <ChallengesClient cases={cases} />
+        <ChallengesClient cases={cases} submissionStatuses={submissionStatuses} />
       </Suspense>
     </StudentShell>
   );

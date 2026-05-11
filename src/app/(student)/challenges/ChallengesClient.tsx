@@ -71,7 +71,19 @@ function countForCluster(cases: CaseStudy[], cluster: string): number {
   return cases.filter((c) => c.cluster === cluster).length;
 }
 
-function applyFilters(cases: CaseStudy[], filters: Filters, segment: Segment): CaseStudy[] {
+const COMPLETED_SUB_STATUSES = new Set([
+  "submitted",
+  "scored",
+  "reviewed",
+  "shortlisted",
+]);
+
+function applyFilters(
+  cases: CaseStudy[],
+  filters: Filters,
+  segment: Segment,
+  submissionStatuses: Record<string, string>,
+): CaseStudy[] {
   let result = cases;
 
   if (filters.industries.length > 0) {
@@ -89,8 +101,15 @@ function applyFilters(cases: CaseStudy[], filters: Filters, segment: Segment): C
     // Saved state requires user-level data; stub returns empty for now.
     result = [];
   }
-  // Non-All segments require server-side user state — stubbed for v2.
-  if (segment !== 'all') {
+  if (segment === "completed") {
+    result = result.filter((c) =>
+      COMPLETED_SUB_STATUSES.has(submissionStatuses[c.id] ?? ""),
+    );
+  } else if (segment === "in-progress") {
+    result = result.filter((c) => submissionStatuses[c.id] === "in_progress");
+  } else if (segment === "for-you" || segment === "saved") {
+    // For-you (match-score) and Saved (bookmarks) still need their data
+    // sources wired — stub to empty.
     result = [];
   }
   return result;
@@ -218,7 +237,7 @@ function FilterDrawer({
   const [showAll, setShowAll] = useState(false);
   const visibleClusters = showAll ? allClusters : allClusters.slice(0, INITIAL_SHOW);
 
-  const draftCount = useMemo(() => applyFilters(cases, draft, 'all').length, [cases, draft]);
+  const draftCount = useMemo(() => applyFilters(cases, draft, 'all', {}).length, [cases, draft]);
 
   const toggleIndustry = (cluster: string) => {
     const next = draft.industries.includes(cluster)
@@ -424,7 +443,7 @@ function FilterSheet({
     return Array.from(seen).sort();
   }, [cases]);
 
-  const draftCount = useMemo(() => applyFilters(cases, draft, 'all').length, [cases, draft]);
+  const draftCount = useMemo(() => applyFilters(cases, draft, 'all', {}).length, [cases, draft]);
 
   const toggleIndustry = (cluster: string) => {
     const next = draft.industries.includes(cluster)
@@ -622,7 +641,13 @@ function ChallengeCard({ cs }: { cs: CaseStudy }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function ChallengesClient({ cases }: { cases: CaseStudy[] }) {
+export function ChallengesClient({
+  cases,
+  submissionStatuses = {},
+}: {
+  cases: CaseStudy[];
+  submissionStatuses?: Record<string, string>;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -728,7 +753,7 @@ export function ChallengesClient({ cases }: { cases: CaseStudy[] }) {
 
   // ── Computed results ──────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    let result = applyFilters(cases, committedFilters, segment);
+    let result = applyFilters(cases, committedFilters, segment, submissionStatuses);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -740,21 +765,31 @@ export function ChallengesClient({ cases }: { cases: CaseStudy[] }) {
       );
     }
     return sortCases(result, sort);
-  }, [cases, committedFilters, segment, searchQuery, sort]);
+  }, [cases, committedFilters, segment, searchQuery, sort, submissionStatuses]);
 
   const activeCount = useMemo(
     () => countActiveFilters(committedFilters, globalMin, globalMax),
     [committedFilters, globalMin, globalMax],
   );
 
-  // Segment counts (non-All stubbed pending user state)
-  const segmentCounts: Record<Segment, number> = {
-    all: cases.length,
-    'for-you': 0,
-    saved: 0,
-    'in-progress': 0,
-    completed: 0,
-  };
+  // Segment counts derived from real submission state for in-progress + completed.
+  // for-you (match score) and saved (bookmarks) are still stubbed pending their data sources.
+  const segmentCounts: Record<Segment, number> = useMemo(() => {
+    let inProgress = 0;
+    let completed = 0;
+    for (const cs of cases) {
+      const s = submissionStatuses[cs.id];
+      if (s === "in_progress") inProgress++;
+      else if (s && COMPLETED_SUB_STATUSES.has(s)) completed++;
+    }
+    return {
+      all: cases.length,
+      'for-you': 0,
+      saved: 0,
+      'in-progress': inProgress,
+      completed,
+    };
+  }, [cases, submissionStatuses]);
 
   // Close sort dropdown on outside click
   const sortRef = useRef<HTMLDivElement>(null);
