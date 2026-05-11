@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { StudentShell } from "@/components/StudentSidebar";
-import { EventsClient } from "./EventsClient";
+import { EventsClient, type EventForClient } from "./EventsClient";
 
 export default async function EventsPage() {
   const supabase = await createClient();
@@ -44,7 +44,7 @@ export default async function EventsPage() {
         }
       >
         <EventsClient
-          events={events ?? []}
+          events={(events ?? []) as unknown as EventForClient[]}
           registeredIds={Array.from(registeredIds)}
         />
       </Suspense>

@@ -32,6 +32,8 @@ interface Event {
   companies: Company | Company[] | null;
 }
 
+export type EventForClient = Event;
+
 const TYPE_LABELS: Record<EventType, string> = {
   workshop: "Workshop",
   company_info_session: "Info Session",
