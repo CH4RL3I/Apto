@@ -29,7 +29,7 @@ interface Event {
   duration_minutes: number;
   total_spots: number;
   registered_count: number;
-  companies: Company | null;
+  companies: Company | Company[] | null;
 }
 
 const TYPE_LABELS: Record<EventType, string> = {
@@ -113,9 +113,15 @@ function EventCard({
         <h3 className="font-bold text-charcoal text-base leading-snug mb-1">
           {event.title}
         </h3>
-        {event.companies && (
-          <p className="text-xs text-charcoal-2 mb-3">{event.companies.name}</p>
-        )}
+        {(() => {
+          const host = Array.isArray(event.companies)
+            ? event.companies[0]
+            : event.companies;
+          if (!host?.name) return null;
+          return (
+            <p className="text-xs text-charcoal-2 mb-3">{host.name}</p>
+          );
+        })()}
 
         {/* Meta */}
         <div className="space-y-1.5 mb-4">

@@ -26,3 +26,4 @@ playwright-report/
 
 # LLM author script — local skip log
 scripts/.llm-author-skipped.json
+SECURITY-AUDIT.md
