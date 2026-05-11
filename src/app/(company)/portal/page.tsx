@@ -45,11 +45,22 @@ export default async function CompanyPortalLandingPage() {
 
   const { data: userRow } = await supabase
     .from("users")
-    .select("role, name")
+    .select("role, roles, name")
     .eq("id", user.id)
     .single();
 
-  if (userRow?.role !== "company") redirect("/dashboard");
+  // Multi-role: render portal if the user has 'company' in their roles array
+  // (falling back to the legacy role column). A student-only user gets
+  // bounced to /dashboard; a user with neither role goes to /login.
+  const roles: string[] = Array.isArray((userRow as { roles?: unknown })?.roles)
+    ? ((userRow as { roles: string[] }).roles)
+    : userRow?.role
+      ? [userRow.role as string]
+      : [];
+  if (!roles.includes("company")) {
+    if (roles.includes("student")) redirect("/dashboard");
+    redirect("/login");
+  }
 
   const { data: company } = await supabase
     .from("companies")

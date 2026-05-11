@@ -61,7 +61,16 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
-  if (userData?.role === "company") redirect("/portal");
+  // Multi-role: a user with both 'student' and 'company' should see /dashboard
+  // when they came here. Only bounce a company-only user to /portal.
+  const roles: string[] = Array.isArray(userData?.roles)
+    ? (userData.roles as string[])
+    : userData?.role
+      ? [userData.role as string]
+      : [];
+  if (!roles.includes("student") && roles.includes("company")) {
+    redirect("/portal");
+  }
 
   const { data: profile } = await supabase
     .from("profiles")

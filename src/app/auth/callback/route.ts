@@ -70,15 +70,18 @@ export async function GET(request: NextRequest) {
   };
 
   // OAuth path: ensure a public.users + profiles row exists. The `role`
-  // query param (set by the login page the user came from) decides whether
-  // the new row is a student or a company — this fixes the bug where a
-  // Google sign-in from /login/company was silently created as a student
-  // and bounced into /upload-cv.
+  // query param (set by the login page the user came from) decides which
+  // role to grant. A single auth.user can now hold both 'student' and
+  // 'company' — if an existing user signs in via the *other* role's login
+  // page, we ADD that role rather than bouncing them around.
   const { data: existingUser } = await supabase
     .from("users")
-    .select("id, role")
+    .select("id, role, roles")
     .eq("id", user.id)
     .maybeSingle();
+
+  const destinationFor = (role: "student" | "company") =>
+    role === "company" ? "/portal" : next;
 
   if (!existingUser) {
     await supabase.from("users").insert({
@@ -89,17 +92,36 @@ export async function GET(request: NextRequest) {
         user.user_metadata?.name ||
         null,
       avatar_url: user.user_metadata?.avatar_url || null,
-      role: requestedRole,
+      role: requestedRole, // legacy mirror
+      roles: [requestedRole], // new multi-role field
     });
     if (requestedRole === "student") {
       await supabase.from("profiles").insert({ user_id: user.id });
     }
-    return redirectTo(requestedRole === "company" ? "/portal" : next);
+    return redirectTo(destinationFor(requestedRole));
   }
 
-  if (existingUser.role === "company") {
-    return redirectTo("/portal");
+  // Existing user. If they're trying to act in a role they don't yet have,
+  // grant it. Fall back to the legacy single `role` column if `roles` is
+  // missing (e.g. row predates the migration trigger backfill).
+  const currentRoles: string[] = Array.isArray(existingUser.roles)
+    ? (existingUser.roles as string[])
+    : existingUser.role
+      ? [existingUser.role as string]
+      : [];
+  if (!currentRoles.includes(requestedRole)) {
+    const newRoles = [...currentRoles, requestedRole];
+    await supabase
+      .from("users")
+      .update({ roles: newRoles })
+      .eq("id", user.id);
+    if (requestedRole === "student") {
+      // Ensure a profiles row exists so the student-side dashboard works.
+      await supabase
+        .from("profiles")
+        .upsert({ user_id: user.id }, { onConflict: "user_id" });
+    }
   }
 
-  return redirectTo(next);
+  return redirectTo(destinationFor(requestedRole));
 }
