@@ -31,6 +31,7 @@ import {
 import { FinalScoreCard } from "./FinalScoreCard";
 import { CertificateBanner } from "./CertificateBanner";
 import { ApplyWithCertificate } from "./ApplyWithCertificate";
+import { PeerSuggestionsSection } from "./PeerSuggestionsSection";
 import {
   startMultiTaskSubmission,
   saveTaskResponse,
@@ -745,6 +746,7 @@ export function ChallengeTasksShell({ caseStudy }: Props) {
                 companyName={caseStudy.companyName ?? "Apto"}
                 roleLabel={caseStudy.matchesRoles[0] ?? "Analyst"}
               />
+              <PeerSuggestionsSection caseStudyId={caseStudy.id} />
               <div className="text-right">
                 <Link
                   href="/results"

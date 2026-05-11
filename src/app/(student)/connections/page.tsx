@@ -1,274 +1,353 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { StudentShell } from "@/components/StudentSidebar";
-import { AcceptedCard, IncomingRow, SentRow } from "./ConnectionRow";
-import { DiscoverPersonCard } from "./DiscoverPersonCard";
+import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
+import { ConnectionsClient } from "./ConnectionsClient";
 
-interface ConnectionRow {
-  id: string;
-  requester_id: string;
-  recipient_id: string;
-  status: "pending" | "accepted" | "rejected" | "blocked";
-  created_at: string;
-}
+export const CLUSTER_LABELS: Record<string, string> = {
+  product_management: "Product",
+  data_analytics: "Data & Analytics",
+  sports_industry: "Sports Industry",
+  design: "Design",
+  sales_gtm: "Sales & GTM",
+  media_production: "Media",
+  hospitality: "Hospitality",
+  consulting: "Consulting",
+  engineering: "Engineering",
+  finance_banking: "Finance",
+};
 
-interface UserRow {
-  id: string;
-  name: string | null;
-  email: string;
-}
+const clusterMap = new Map(CASE_STUDIES.map((cs) => [cs.id, cs.cluster]));
 
-interface ProfileRow {
-  user_id: string;
-  headline: string | null;
-  cv_parsed: { summary?: string | null } | null;
-}
-
-interface DiscoverProfileRow {
-  user_id: string;
-  username: string | null;
-  headline: string | null;
-  cv_parsed: { name?: string | null; summary?: string | null } | null;
-  cv_skills: string[] | null;
-  created_at?: string | null;
-}
-
-function pickHeadline(p?: ProfileRow): string | null {
-  if (!p) return null;
-  if (p.headline) return p.headline;
-  const summary = p.cv_parsed?.summary;
-  if (typeof summary === "string" && summary.trim().length > 0) {
-    return summary.length > 140 ? `${summary.slice(0, 137)}…` : summary;
+function challengeCategories(submissions: { case_study_id: string }[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const s of submissions) {
+    const cluster = clusterMap.get(s.case_study_id);
+    if (cluster && !seen.has(cluster)) {
+      seen.add(cluster);
+      result.push(CLUSTER_LABELS[cluster] ?? cluster);
+    }
+    if (result.length >= 3) break;
   }
-  return null;
+  return result;
 }
 
-function pickName(u?: UserRow): string {
-  if (!u) return "Unknown";
-  return u.name?.trim() || u.email;
+export interface ConnectionPeer {
+  connectionId: string;
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  university: string | null;
+  yearOfStudy: string | null;
+  careerInterests: string[];
+  challengeCategories: string[];
+  mutualCount: number;
+  headline: string | null;
 }
 
-function pickDiscoverHeadline(p: DiscoverProfileRow): string | null {
-  if (p.headline?.trim()) return p.headline.trim();
-  const summary = p.cv_parsed?.summary;
-  if (typeof summary === "string" && summary.trim().length > 0) {
-    return summary.length > 140 ? `${summary.slice(0, 137)}…` : summary;
-  }
-  return null;
+export interface ActivityItem {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  description: string;
+  createdAt: string;
 }
 
-function pickDiscoverName(p: DiscoverProfileRow, u?: UserRow): string {
-  const cvName =
-    typeof p.cv_parsed?.name === "string" ? p.cv_parsed.name.trim() : "";
-  if (cvName) return cvName;
-  if (u?.name?.trim()) return u.name.trim();
-  if (p.username) return p.username;
-  if (u?.email) return u.email;
-  return "Apto member";
+export interface DiscoverPerson {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  university: string | null;
+  yearOfStudy: string | null;
+  careerInterests: string[];
+  challengeCategories: string[];
+  sharedCount: number;
+  isPending: boolean;
 }
 
 export default async function ConnectionsPage() {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: rawConnections } = await supabase
+  // 1. All my connections
+  const { data: rawConns } = await supabase
     .from("connections")
     .select("id, requester_id, recipient_id, status, created_at")
+    .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
-  const connections = (rawConnections ?? []) as ConnectionRow[];
+  const myConns = (rawConns ?? []) as {
+    id: string;
+    requester_id: string;
+    recipient_id: string;
+    status: string;
+    created_at: string;
+  }[];
 
-  const otherIds = Array.from(
-    new Set(
-      connections.map((c) =>
-        c.requester_id === user.id ? c.recipient_id : c.requester_id,
-      ),
-    ),
-  );
+  const peerOf = (c: { requester_id: string; recipient_id: string }) =>
+    c.requester_id === user.id ? c.recipient_id : c.requester_id;
 
-  const [{ data: usersData }, { data: profilesData }] = await Promise.all([
-    otherIds.length
-      ? supabase.from("users").select("id, name, email").in("id", otherIds)
-      : Promise.resolve({ data: [] as UserRow[] }),
-    otherIds.length
+  const allPeerIds = [...new Set(myConns.map(peerOf))];
+
+  // 2. User + profile data for all peers
+  const [usersResult, profilesResult] = await Promise.all([
+    allPeerIds.length
+      ? supabase.from("users").select("id, name, avatar_url").in("id", allPeerIds)
+      : Promise.resolve({ data: [] }),
+    allPeerIds.length
       ? supabase
           .from("profiles")
-          .select("user_id, headline, cv_parsed")
-          .in("user_id", otherIds)
-      : Promise.resolve({ data: [] as ProfileRow[] }),
+          .select("user_id, university, year_of_study, career_interests, headline")
+          .in("user_id", allPeerIds)
+      : Promise.resolve({ data: [] }),
   ]);
 
+  type UserRow = { id: string; name: string | null; avatar_url: string | null };
+  type ProfileRow = {
+    user_id: string;
+    university: string | null;
+    year_of_study: string | null;
+    career_interests: string[] | null;
+    headline: string | null;
+  };
+
   const userMap = new Map<string, UserRow>(
-    ((usersData ?? []) as UserRow[]).map((u) => [u.id, u]),
+    ((usersResult.data ?? []) as UserRow[]).map((u) => [u.id, u]),
   );
   const profileMap = new Map<string, ProfileRow>(
-    ((profilesData ?? []) as ProfileRow[]).map((p) => [p.user_id, p]),
+    ((profilesResult.data ?? []) as ProfileRow[]).map((p) => [p.user_id, p]),
   );
 
-  const incoming = connections.filter(
-    (c) => c.status === "pending" && c.recipient_id === user.id,
-  );
-  const sent = connections.filter(
-    (c) => c.status === "pending" && c.requester_id === user.id,
-  );
-  const accepted = connections.filter((c) => c.status === "accepted");
+  // 3. Submissions for all peers
+  const { data: peerSubs } = allPeerIds.length
+    ? await supabase
+        .from("submissions")
+        .select("user_id, case_study_id, status")
+        .in("user_id", allPeerIds)
+        .in("status", ["scored", "reviewed", "shortlisted", "submitted"])
+    : { data: [] };
 
-  const empty =
-    incoming.length === 0 && sent.length === 0 && accepted.length === 0;
-
-  // ---------------------------------------------------------------------
-  // Discover people: public profiles I'm not already connected/connecting to
-  // ---------------------------------------------------------------------
-  const excludedIds = new Set<string>([user.id]);
-  for (const c of connections) {
-    // Exclude every user currently entangled with me — pending, accepted,
-    // rejected, or blocked. Re-sending a request after a rejection is
-    // intentionally not supported from Discover.
-    excludedIds.add(
-      c.requester_id === user.id ? c.recipient_id : c.requester_id,
-    );
+  const peerSubsMap = new Map<string, { case_study_id: string }[]>();
+  for (const s of peerSubs ?? []) {
+    const key = s.user_id as string;
+    if (!peerSubsMap.has(key)) peerSubsMap.set(key, []);
+    peerSubsMap.get(key)!.push({ case_study_id: s.case_study_id as string });
   }
+
+  // 4. My own submissions (for discover overlap)
+  const { data: mySubs } = await supabase
+    .from("submissions")
+    .select("case_study_id, status")
+    .eq("user_id", user.id)
+    .in("status", ["scored", "reviewed", "shortlisted", "submitted"]);
+
+  const myCategories = new Set(
+    (mySubs ?? []).map((s) => clusterMap.get(s.case_study_id as string)).filter(Boolean),
+  );
+
+  // 5. Mutual connections count
+  const acceptedPeerIds = myConns
+    .filter((c) => c.status === "accepted")
+    .map(peerOf);
+
+  const mutualCountMap = new Map<string, number>();
+  if (acceptedPeerIds.length > 0) {
+    const { data: peerConnsData } = await supabase
+      .from("connections")
+      .select("requester_id, recipient_id")
+      .eq("status", "accepted")
+      .or(
+        `requester_id.in.(${acceptedPeerIds.join(",")}),recipient_id.in.(${acceptedPeerIds.join(",")})`,
+      );
+
+    const myAcceptedSet = new Set(acceptedPeerIds);
+    for (const peerId of acceptedPeerIds) {
+      const peerConns = (peerConnsData ?? []).filter(
+        (c) => c.requester_id === peerId || c.recipient_id === peerId,
+      );
+      const peerConnectedIds = new Set(
+        peerConns.map((c) =>
+          c.requester_id === peerId ? c.recipient_id : c.requester_id,
+        ),
+      );
+      let mutual = 0;
+      for (const otherId of myAcceptedSet) {
+        if (otherId !== peerId && peerConnectedIds.has(otherId)) mutual++;
+      }
+      mutualCountMap.set(peerId, mutual);
+    }
+  }
+
+  // 6. Build accepted connections list
+  const acceptedConns: ConnectionPeer[] = myConns
+    .filter((c) => c.status === "accepted")
+    .map((c) => {
+      const peerId = peerOf(c);
+      const u = userMap.get(peerId);
+      const p = profileMap.get(peerId);
+      return {
+        connectionId: c.id,
+        userId: peerId,
+        name: u?.name ?? "Apto member",
+        avatarUrl: u?.avatar_url ?? null,
+        university: p?.university ?? null,
+        yearOfStudy: p?.year_of_study ?? null,
+        careerInterests: p?.career_interests ?? [],
+        challengeCategories: challengeCategories(peerSubsMap.get(peerId) ?? []),
+        mutualCount: mutualCountMap.get(peerId) ?? 0,
+        headline: p?.headline ?? null,
+      };
+    });
+
+  // 7. Incoming pending requests
+  const incomingPending: ConnectionPeer[] = myConns
+    .filter((c) => c.status === "pending" && c.recipient_id === user.id)
+    .map((c) => {
+      const peerId = c.requester_id;
+      const u = userMap.get(peerId);
+      const p = profileMap.get(peerId);
+      return {
+        connectionId: c.id,
+        userId: peerId,
+        name: u?.name ?? "Apto member",
+        avatarUrl: u?.avatar_url ?? null,
+        university: p?.university ?? null,
+        yearOfStudy: p?.year_of_study ?? null,
+        careerInterests: p?.career_interests ?? [],
+        challengeCategories: challengeCategories(peerSubsMap.get(peerId) ?? []),
+        mutualCount: 0,
+        headline: p?.headline ?? null,
+      };
+    });
+
+  // 8. Activity feed
+  let activityItems: ActivityItem[] = [];
+  if (acceptedPeerIds.length > 0) {
+    const { data: actRows } = await supabase
+      .from("connection_activity")
+      .select("id, user_id, description, created_at")
+      .in("user_id", acceptedPeerIds)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    activityItems = (actRows ?? []).map((row) => {
+      const u = userMap.get(row.user_id as string);
+      return {
+        id: row.id as string,
+        userId: row.user_id as string,
+        userName: u?.name ?? "Apto member",
+        userAvatarUrl: u?.avatar_url ?? null,
+        description: row.description as string,
+        createdAt: row.created_at as string,
+      };
+    });
+  }
+
+  // 9. Discover profiles
+  const excludedIds = new Set([user.id, ...allPeerIds]);
 
   const { data: rawDiscover } = await supabase
     .from("profiles")
     .select(
-      "user_id, username, headline, cv_parsed, cv_skills, created_at",
+      "user_id, is_public, university, year_of_study, career_interests, headline, created_at",
     )
     .eq("is_public", true)
-    .not("username", "is", null)
     .order("created_at", { ascending: false })
-    .limit(48);
+    .limit(60);
 
-  const discoverProfiles = ((rawDiscover ?? []) as DiscoverProfileRow[])
-    .filter((p) => !excludedIds.has(p.user_id))
-    .filter((p) => typeof p.username === "string" && p.username.length > 0)
-    .slice(0, 12);
+  const discoverCandidates = (
+    (rawDiscover ?? []) as {
+      user_id: string;
+      university: string | null;
+      year_of_study: string | null;
+      career_interests: string[] | null;
+      headline: string | null;
+    }[]
+  ).filter((p) => !excludedIds.has(p.user_id));
 
-  const discoverUserIds = discoverProfiles.map((p) => p.user_id);
-  const { data: discoverUsersData } = discoverUserIds.length
-    ? await supabase
-        .from("users")
-        .select("id, name, email")
-        .in("id", discoverUserIds)
-    : { data: [] as UserRow[] };
+  const discoverUserIds = discoverCandidates.map((p) => p.user_id);
+
+  const [discoverUsersResult, discoverSubsResult] = await Promise.all([
+    discoverUserIds.length
+      ? supabase.from("users").select("id, name, avatar_url").in("id", discoverUserIds)
+      : Promise.resolve({ data: [] }),
+    discoverUserIds.length
+      ? supabase
+          .from("submissions")
+          .select("user_id, case_study_id, status")
+          .in("user_id", discoverUserIds)
+          .in("status", ["scored", "reviewed", "shortlisted", "submitted"])
+      : Promise.resolve({ data: [] }),
+  ]);
+
   const discoverUserMap = new Map<string, UserRow>(
-    ((discoverUsersData ?? []) as UserRow[]).map((u) => [u.id, u]),
+    ((discoverUsersResult.data ?? []) as UserRow[]).map((u) => [u.id, u]),
   );
 
-  function rowProps(c: ConnectionRow) {
-    const otherId = c.requester_id === user!.id ? c.recipient_id : c.requester_id;
-    return {
-      connectionId: c.id,
-      name: pickName(userMap.get(otherId)),
-      headline: pickHeadline(profileMap.get(otherId)),
-    };
+  const discoverSubsMap = new Map<string, { case_study_id: string }[]>();
+  for (const s of discoverSubsResult.data ?? []) {
+    const key = s.user_id as string;
+    if (!discoverSubsMap.has(key)) discoverSubsMap.set(key, []);
+    discoverSubsMap.get(key)!.push({ case_study_id: s.case_study_id as string });
   }
+
+  const pendingIds = new Set(
+    myConns
+      .filter((c) => c.status === "pending" && c.requester_id === user.id)
+      .map(peerOf),
+  );
+
+  const discoverPersons: DiscoverPerson[] = discoverCandidates
+    .map((p) => {
+      const u = discoverUserMap.get(p.user_id);
+      const subs = discoverSubsMap.get(p.user_id) ?? [];
+      const cats = challengeCategories(subs);
+      const peerClusters = new Set(
+        subs.map((s) => clusterMap.get(s.case_study_id)).filter(Boolean),
+      );
+      const sharedCount = [...peerClusters].filter((c) => myCategories.has(c)).length;
+      return {
+        userId: p.user_id,
+        name: u?.name ?? "Apto member",
+        avatarUrl: u?.avatar_url ?? null,
+        university: p.university ?? null,
+        yearOfStudy: p.year_of_study ?? null,
+        careerInterests: p.career_interests ?? [],
+        challengeCategories: cats,
+        sharedCount,
+        isPending: pendingIds.has(p.user_id),
+      };
+    })
+    .sort((a, b) => b.sharedCount - a.sharedCount)
+    .slice(0, 24);
+
+  // Distinct universities for autocomplete
+  const universities = [
+    ...new Set(
+      [...discoverCandidates]
+        .map((p) => p.university)
+        .filter((u): u is string => !!u),
+    ),
+  ].sort();
+
+  const allClusters = Object.values(CLUSTER_LABELS);
 
   return (
     <StudentShell active="connections">
-      <header className="mb-8">
-        <div className="eyebrow mb-2">Network</div>
-        <h1 className="text-3xl font-bold tracking-tight text-charcoal">
-          Connections
-        </h1>
-        <p className="mt-1 text-charcoal-2">
-          Manage incoming requests and people in your network.
-        </p>
-      </header>
-
-      <section className="mb-10">
-        <div className="mb-3">
-          <h2 className="eyebrow">Discover people</h2>
-          <p className="mt-1 text-sm text-charcoal-2">
-            Public profiles on Apto — connect to follow each other&apos;s
-            challenges and messages.
-          </p>
-        </div>
-        {discoverProfiles.length === 0 ? (
-          <div className="rounded-[14px] border border-dashed border-sage-mist-2 bg-pale-sage/40 p-6 text-sm text-charcoal-2">
-            No public profiles to discover yet — once people make their
-            profiles public on /profile/edit, they&apos;ll show up here.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {discoverProfiles.map((p) => {
-              const u = discoverUserMap.get(p.user_id);
-              return (
-                <DiscoverPersonCard
-                  key={p.user_id}
-                  recipientUserId={p.user_id}
-                  username={p.username as string}
-                  name={pickDiscoverName(p, u)}
-                  headline={pickDiscoverHeadline(p)}
-                  skills={p.cv_skills ?? []}
-                />
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {empty ? (
-        <div className="rounded-[14px] border border-dashed border-sage-mist-2 bg-pale-sage/40 p-8 text-center">
-          <div className="text-sm font-semibold text-charcoal">
-            No connections yet
-          </div>
-          <div className="mt-1 text-sm text-charcoal-2">
-            Explore companies and challenges to get started.
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-10">
-          <section>
-            <h2 className="eyebrow mb-3">
-              Incoming requests ({incoming.length})
-            </h2>
-            {incoming.length === 0 ? (
-              <p className="text-sm text-charcoal-3">
-                No incoming requests.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {incoming.map((c) => (
-                  <IncomingRow key={c.id} {...rowProps(c)} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h2 className="eyebrow mb-3">Sent requests ({sent.length})</h2>
-            {sent.length === 0 ? (
-              <p className="text-sm text-charcoal-3">No pending sent requests.</p>
-            ) : (
-              <div className="space-y-3">
-                {sent.map((c) => (
-                  <SentRow key={c.id} {...rowProps(c)} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h2 className="eyebrow mb-3">
-              My connections ({accepted.length})
-            </h2>
-            {accepted.length === 0 ? (
-              <p className="text-sm text-charcoal-3">No connections yet.</p>
-            ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {accepted.map((c) => (
-                  <AcceptedCard key={c.id} {...rowProps(c)} />
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
+      <ConnectionsClient
+        userId={user.id}
+        acceptedConns={acceptedConns}
+        incomingPending={incomingPending}
+        activityItems={activityItems}
+        discoverPersons={discoverPersons}
+        universities={universities}
+        clusterLabels={allClusters}
+      />
     </StudentShell>
   );
 }

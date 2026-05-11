@@ -6,6 +6,7 @@ import {
   ScoringError,
   type MultiTaskScore,
 } from "@/lib/scoring/multi-task";
+import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
 
 export interface TaskResponseEntry {
   taskIndex: number;
@@ -196,7 +197,7 @@ export async function completeMultiTaskSubmission(
 
   const { data: row, error: loadErr } = await supabase
     .from("submissions")
-    .select("id, user_id, integrity_signals")
+    .select("id, user_id, case_study_id, integrity_signals")
     .eq("id", submissionId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -300,6 +301,23 @@ export async function completeMultiTaskSubmission(
       errorMessage:
         "Your scores are computed but we could not save them. Try again from your dashboard.",
     };
+  }
+
+  // Write challenge completion to activity feed (non-fatal)
+  try {
+    const caseStudyId = row.case_study_id as string;
+    const cs = CASE_STUDIES.find((c) => c.id === caseStudyId);
+    const description = cs?.companyName
+      ? `completed a challenge at ${cs.companyName}`
+      : "completed a challenge";
+    await supabase.from("connection_activity").insert({
+      user_id: user.id,
+      activity_type: "challenge_completed",
+      description,
+      case_study_id: caseStudyId,
+    });
+  } catch {
+    // Non-fatal: activity feed write failure should not affect scoring result
   }
 
   return { ok: true, scores };
