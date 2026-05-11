@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { CalendarDays } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { StudentShell } from "@/components/StudentSidebar";
+import { EventsClient, type EventForClient } from "./EventsClient";
 
 export default async function EventsPage() {
   const supabase = await createClient();
@@ -10,25 +11,43 @@ export default async function EventsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  return (
-    <StudentShell active="home">
-      <header className="mb-6">
-        <div className="eyebrow mb-2">Upcoming events</div>
-        <h1 className="text-3xl font-bold text-charcoal tracking-tight">
-          Upcoming Events
-        </h1>
-        <p className="text-charcoal-2 mt-1">
-          Workshops, info sessions, and prep events from companies and the Apto team. Save the dates and join the ones that match your goals.
-        </p>
-      </header>
+  const { data: events } = await supabase
+    .from("events")
+    .select(`
+      id, title, description, outcomes, speaker_name, speaker_role,
+      event_type, topic, format, location, starts_at, duration_minutes,
+      total_spots, registered_count,
+      companies ( id, name, logo_url )
+    `)
+    .gte("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: true });
 
-      <div className="rounded-[14px] border border-sage-mist-2 bg-chalk p-10 text-center shadow-1">
-        <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-pale-sage text-sage shadow-1">
-          <CalendarDays className="h-5 w-5" strokeWidth={1.75} />
-        </div>
-        <h3 className="font-bold text-charcoal mb-2">No events yet</h3>
-        <p className="text-sm text-charcoal-2">Check back soon.</p>
-      </div>
+  const { data: registrations } = await supabase
+    .from("event_registrations")
+    .select("event_id")
+    .eq("user_id", user.id);
+
+  const registeredIds = new Set((registrations ?? []).map((r) => r.event_id as string));
+
+  return (
+    <StudentShell active="events">
+      <Suspense
+        fallback={
+          <div className="space-y-4 animate-pulse">
+            <div className="h-8 w-48 rounded-lg bg-pale-sage" />
+            <div className="h-6 w-64 rounded-lg bg-pale-sage" />
+            <div className="h-10 w-80 rounded-xl bg-pale-sage" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-40 rounded-[14px] bg-pale-sage" />
+            ))}
+          </div>
+        }
+      >
+        <EventsClient
+          events={(events ?? []) as unknown as EventForClient[]}
+          registeredIds={Array.from(registeredIds)}
+        />
+      </Suspense>
     </StudentShell>
   );
 }

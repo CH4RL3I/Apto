@@ -3,6 +3,7 @@ import {
   Bookmark,
   Briefcase,
   Building2,
+  CalendarDays,
   Compass,
   Home as HomeIcon,
   MessageCircle,
@@ -19,6 +20,7 @@ export type StudentNavKey =
   | "challenges"
   | "companies"
   | "connections"
+  | "events"
   | "messages";
 
 const items: ReadonlyArray<{
@@ -32,6 +34,7 @@ const items: ReadonlyArray<{
   { key: "challenges", label: "Challenges", href: "/challenges", icon: Briefcase },
   { key: "companies", label: "Companies", href: "/companies", icon: Building2 },
   { key: "connections", label: "Connections", href: "/connections", icon: Users },
+  { key: "events", label: "Events", href: "/events", icon: CalendarDays },
   { key: "messages", label: "Messages", href: "/messages", icon: MessageCircle },
 ];
 
