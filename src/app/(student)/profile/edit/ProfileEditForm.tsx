@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { deleteMyAccount, updateStudentProfile } from "./actions";
@@ -14,6 +15,8 @@ interface InitialValues {
   isPublic: boolean;
   username: string;
   headline: string;
+  cvUrl: string | null;
+  email: string | null;
 }
 
 export function ProfileEditForm({ initial }: { initial: InitialValues }) {
@@ -280,8 +283,74 @@ export function ProfileEditForm({ initial }: { initial: InitialValues }) {
       </div>
     </form>
 
+    <CvSection cvUrl={initial.cvUrl} />
+
     <DangerZone />
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CV section — view current CV, replace via /upload-cv
+// ---------------------------------------------------------------------------
+
+function CvSection({ cvUrl }: { cvUrl: string | null }) {
+  const fileName = (() => {
+    if (!cvUrl) return null;
+    try {
+      const decoded = decodeURIComponent(cvUrl);
+      const last = decoded.split("/").pop() ?? "";
+      // Strip leading timestamp prefix (uploads use `${timestamp}-${name}`).
+      return last.replace(/^\d+-/, "");
+    } catch {
+      return cvUrl;
+    }
+  })();
+
+  return (
+    <div className="mt-6 rounded-[14px] border border-sage-mist-2 bg-chalk p-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div className="eyebrow text-charcoal-2">CV</div>
+          <h2 className="mt-1 text-base font-bold tracking-tight text-charcoal">
+            Your CV
+          </h2>
+        </div>
+      </div>
+      {cvUrl ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-charcoal-2">
+            Current file:{" "}
+            <a
+              href={cvUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-sage underline-offset-2 hover:underline"
+            >
+              {fileName ?? "View CV"}
+            </a>
+          </div>
+          <Link
+            href="/upload-cv"
+            className="focus-ring inline-flex items-center justify-center rounded-[10px] border border-sage bg-chalk px-3 py-2 text-sm font-semibold text-sage hover:bg-pale-sage"
+          >
+            Replace CV
+          </Link>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-charcoal-2">
+            No CV on file yet. Upload one so we can match you and so companies can review your submissions with full context.
+          </p>
+          <Link
+            href="/upload-cv"
+            className="focus-ring inline-flex items-center justify-center rounded-[10px] bg-sage px-3 py-2 text-sm font-semibold text-chalk hover:bg-sage-700"
+          >
+            Upload CV
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
 
