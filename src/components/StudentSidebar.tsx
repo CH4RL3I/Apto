@@ -104,7 +104,7 @@ export async function StudentSidebar({ active }: { active: StudentNavKey }) {
           Bookmarks
         </Link>
         <Link
-          href="/results"
+          href="/profile/edit"
           className="focus-ring flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-semibold text-charcoal-2 hover:bg-pale-sage hover:text-charcoal"
         >
           <Settings className="h-4 w-4" strokeWidth={1.75} />

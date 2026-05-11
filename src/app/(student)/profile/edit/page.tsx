@@ -28,10 +28,6 @@ export default async function ProfileEditPage() {
     .eq("user_id", user.id)
     .single();
 
-  if (!profile?.cv_url) {
-    redirect("/upload-cv");
-  }
-
   const cv = (profile?.cv_parsed ?? null) as ParsedCV | null;
   const cvSkills = Array.isArray(profile?.cv_skills)
     ? (profile.cv_skills as string[])
@@ -45,6 +41,8 @@ export default async function ProfileEditPage() {
     isPublic: Boolean(profile?.is_public),
     username: typeof profile?.username === "string" ? profile.username : "",
     headline: typeof profile?.headline === "string" ? profile.headline : "",
+    cvUrl: typeof profile?.cv_url === "string" ? profile.cv_url : null,
+    email: typeof user.email === "string" ? user.email : null,
   };
 
   return (
@@ -65,12 +63,12 @@ export default async function ProfileEditPage() {
 
       <div className="mx-auto max-w-2xl px-6 py-10">
         <div className="mb-6">
-          <div className="eyebrow mb-2">Profile</div>
+          <div className="eyebrow mb-2">Account</div>
           <h1 className="text-2xl font-bold tracking-tight text-charcoal md:text-[28px]">
-            Edit your profile
+            Settings
           </h1>
           <p className="mt-2 text-sm text-charcoal-2">
-            Update the details we use to match you with case studies and roles.
+            Edit your information, replace your CV, manage privacy, and delete your account.
           </p>
         </div>
 
