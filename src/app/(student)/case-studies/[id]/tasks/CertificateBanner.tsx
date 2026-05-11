@@ -1,11 +1,24 @@
 "use client";
 
+export type CertificateBannerState = "saving" | "ready" | "failed";
+
 interface Props {
   challengeTitle: string;
   submissionId: string | null;
+  state?: CertificateBannerState;
+  onRetry?: () => void;
 }
 
-export function CertificateBanner({ challengeTitle, submissionId }: Props) {
+export function CertificateBanner({
+  challengeTitle,
+  submissionId,
+  state,
+  onRetry,
+}: Props) {
+  // Backwards-compatible default: if no explicit state, infer from submissionId.
+  const effectiveState: CertificateBannerState =
+    state ?? (submissionId ? "ready" : "saving");
+
   return (
     <div className="rounded-[14px] border border-sage-mist-2 bg-pale-sage p-5 mb-4 flex flex-col gap-4 fade-in sm:flex-row sm:items-center">
       <div
@@ -23,7 +36,7 @@ export function CertificateBanner({ challengeTitle, submissionId }: Props) {
           Companies can see exactly how you think, not just that you passed.
         </div>
       </div>
-      {submissionId ? (
+      {effectiveState === "ready" && submissionId ? (
         <a
           href={`/certificate/${submissionId}`}
           target="_blank"
@@ -32,6 +45,15 @@ export function CertificateBanner({ challengeTitle, submissionId }: Props) {
         >
           View certificate ↗
         </a>
+      ) : effectiveState === "failed" ? (
+        <button
+          type="button"
+          onClick={onRetry}
+          disabled={!onRetry}
+          className="w-full rounded-lg border border-coral-200 bg-chalk px-3 py-2 text-center text-[12px] font-semibold text-coral-700 hover:bg-coral-50 disabled:opacity-50 focus-ring sm:w-auto"
+        >
+          Retry scoring
+        </button>
       ) : (
         <span className="w-full rounded-lg border border-sage-mist-2 bg-chalk px-3 py-2 text-center text-[12px] font-semibold text-charcoal-3 sm:w-auto">
           Saving…
