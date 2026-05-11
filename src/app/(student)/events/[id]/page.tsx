@@ -123,11 +123,21 @@ export default async function EventDetailPage({
           {event.title}
         </h1>
 
-        {event.companies && (
-          <p className="text-sm text-charcoal-2 mb-6">
-            Hosted by <span className="font-semibold text-charcoal">{(event.companies as { name: string }).name}</span>
-          </p>
-        )}
+        {(() => {
+          const c = event.companies as
+            | { name?: string | null }
+            | Array<{ name?: string | null }>
+            | null
+            | undefined;
+          const hostName = Array.isArray(c) ? c[0]?.name : c?.name;
+          if (!hostName) return null;
+          return (
+            <p className="text-sm text-charcoal-2 mb-6">
+              Hosted by{" "}
+              <span className="font-semibold text-charcoal">{hostName}</span>
+            </p>
+          );
+        })()}
 
         {/* Meta card */}
         <div className="mb-6 rounded-[14px] border border-sage-mist-2 bg-chalk p-5 shadow-1">
