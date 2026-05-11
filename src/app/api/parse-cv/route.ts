@@ -123,7 +123,7 @@ Field rules:
 - name: candidate's full name as written on the CV. null if absent.
 - education: every degree/diploma. "field" = the subject (e.g. "Computer Science"). Years as "YYYY" or "YYYY-MM". If only one year is given, fill year_end and leave year_start null.
 - experience: every job, internship, or substantive volunteering. "summary" ≤30 words, focus on what they did, not the company description. "end" may be "Present".
-- skills: technical and soft skills explicitly listed or strongly implied by tools/projects. Deduplicate. No proficiency suffix.
+- skills: extract skills from BOTH the Skills section AND every experience, project, internship, and education entry. Pull every tool, software, programming language, library, framework, platform, methodology, technique, certification, and substantive soft skill named anywhere in the CV — not just the dedicated Skills section. Examples to capture: "built dashboards in Tableau" → Tableau; "led weekly sprint planning" → Agile, Sprint Planning; "wrote SQL queries against BigQuery" → SQL, BigQuery; "managed stakeholder relationships across 4 teams" → Stakeholder Management. Deduplicate (case-insensitive). Use canonical names (e.g. "PowerPoint" not "Power Point"; "JavaScript" not "JS"). No proficiency suffix. Aim for 10–25 skills for a typical CV — if you return fewer than 8, you almost certainly missed implicit ones in the experience descriptions.
 - languages: spoken/written languages with proficiency normalized to one of: Native, Fluent, Advanced, Intermediate, Basic.
 
 Do not invent data. If a section is genuinely missing, return an empty array.`,
