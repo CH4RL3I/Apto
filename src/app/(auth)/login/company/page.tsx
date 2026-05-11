@@ -35,11 +35,17 @@ export default function CompanyLoginPage() {
       email: email.trim(),
       password,
     });
-    setLoading(false);
     if (authError) {
+      setLoading(false);
       setError(authError.message);
       return;
     }
+    // Hydrate cookies before navigating. signInWithPassword writes the auth
+    // token cookie in chunks; without this getSession call, navigation can
+    // race the final chunk and the middleware sees a partial cookie set,
+    // bouncing the user back to /login/company (the "log in twice" bug).
+    await supabase.auth.getSession();
+    setLoading(false);
     window.location.assign("/portal");
   }
 

@@ -35,14 +35,20 @@ export default function StudentLoginPage() {
       email: email.trim(),
       password,
     });
-    setLoading(false);
     if (authError) {
+      setLoading(false);
       setError(authError.message);
       return;
     }
-    // Hard reload so the auth cookie set by signInWithPassword is on the
-    // request the middleware sees. Soft router.push has a race that
-    // sometimes makes the middleware miss the cookie and bounce back.
+    // Hydrate cookies before navigating. signInWithPassword writes the auth
+    // token cookie in chunks (sb-<project>-auth-token.0, .1, ...) and returns
+    // before the browser has committed every chunk to document.cookie. A
+    // straight window.location.assign races the final chunk: the middleware
+    // sees a partial cookie set, treats the user as logged-out, and bounces
+    // them to /login — the "log in twice" symptom. getSession() forces the
+    // client to read+rewrite the full cookie set before we navigate.
+    await supabase.auth.getSession();
+    setLoading(false);
     window.location.assign("/dashboard");
   }
 
