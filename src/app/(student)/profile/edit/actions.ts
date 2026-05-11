@@ -187,25 +187,112 @@ export async function deleteMyAccount(
     }
   }
 
-  // Tables that DO NOT cascade from auth.users(id) — explicit cleanup first.
-  // - public.invitations.user_id → public.users(id) (no ON DELETE CASCADE)
-  //   Without this, deleting the auth user would fail when public.users cascade
-  //   tries to drop the row referenced by invitations.
-  const { error: invitationsErr } = await admin
-    .from("invitations")
-    .delete()
-    .eq("user_id", userId);
-  if (invitationsErr) {
-    console.error("deleteMyAccount: failed to delete invitations", invitationsErr);
-    return {
-      ok: false,
-      error: "Could not delete your invitations. Please try again.",
-    };
+  // Belt-and-suspenders: explicitly delete every user-owned row BEFORE asking
+  // auth.admin.deleteUser to drop the auth row. The DB cascade chain SHOULD
+  // also clean these up, but the user-reported bug (a submission surviving an
+  // account deletion) proves we can't rely on it alone — a missing CASCADE on
+  // any link in the chain silently leaves orphaned data. Doing the deletes
+  // ourselves first makes the result deterministic and gives us per-table log
+  // lines for debugging future regressions.
+  //
+  // Order matters: child rows before parents.
+  const explicitDeletes: Array<{
+    label: string;
+    run: () => Promise<{ error: unknown; count: number | null }>;
+  }> = [
+    {
+      label: "notifications",
+      run: async () => {
+        const { error, count } = await admin
+          .from("notifications")
+          .delete({ count: "exact" })
+          .eq("user_id", userId);
+        return { error, count };
+      },
+    },
+    {
+      label: "messages(sender)",
+      run: async () => {
+        const { error, count } = await admin
+          .from("messages")
+          .delete({ count: "exact" })
+          .eq("sender_id", userId);
+        return { error, count };
+      },
+    },
+    {
+      label: "connections",
+      run: async () => {
+        const { error, count } = await admin
+          .from("connections")
+          .delete({ count: "exact" })
+          .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
+        return { error, count };
+      },
+    },
+    {
+      label: "invitations",
+      run: async () => {
+        const { error, count } = await admin
+          .from("invitations")
+          .delete({ count: "exact" })
+          .eq("user_id", userId);
+        return { error, count };
+      },
+    },
+    {
+      label: "submissions",
+      run: async () => {
+        const { error, count } = await admin
+          .from("submissions")
+          .delete({ count: "exact" })
+          .eq("user_id", userId);
+        return { error, count };
+      },
+    },
+    {
+      label: "profiles",
+      run: async () => {
+        const { error, count } = await admin
+          .from("profiles")
+          .delete({ count: "exact" })
+          .eq("user_id", userId);
+        return { error, count };
+      },
+    },
+    {
+      label: "users",
+      run: async () => {
+        const { error, count } = await admin
+          .from("users")
+          .delete({ count: "exact" })
+          .eq("id", userId);
+        return { error, count };
+      },
+    },
+  ];
+
+  for (const step of explicitDeletes) {
+    const { error: stepErr, count } = await step.run();
+    if (stepErr) {
+      console.error(
+        `deleteMyAccount: explicit delete failed for ${step.label}`,
+        stepErr,
+      );
+      return {
+        ok: false,
+        error: `Could not delete your ${step.label}. Please try again.`,
+      };
+    }
+    console.log(
+      `deleteMyAccount: wiped ${step.label} rows=${count ?? "?"} user=${userId}`,
+    );
   }
 
-  // Delete the auth user. ON DELETE CASCADE on public.users(id) → auth.users(id)
-  // takes care of: users, profiles, submissions, connections (requester+recipient),
-  // messages (sender), notifications. case_study_tasks.updated_by is SET NULL.
+  // Finally delete the auth.users row itself. With the explicit deletes above
+  // already complete, this primarily exists to revoke the session and free the
+  // email for re-signup. case_study_tasks.updated_by is ON DELETE SET NULL, so
+  // any moderator edits remain on the row (anonymised).
   const { error: authErr } = await admin.auth.admin.deleteUser(userId, false);
   if (authErr) {
     console.error("deleteMyAccount: auth.admin.deleteUser failed", authErr);
@@ -215,6 +302,7 @@ export async function deleteMyAccount(
         "We couldn't delete your account. Please try again or contact support.",
     };
   }
+  console.log(`deleteMyAccount: auth.users row deleted user=${userId}`);
 
   // Sign the user out of this browser session (clears cookies). Best effort.
   try {
