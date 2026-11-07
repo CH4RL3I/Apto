@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { revalidatePath } from "next/cache";
 
 export type ReviewStatus =
@@ -27,10 +28,10 @@ async function requireOwningCompany(submissionId: string) {
 
   const { data: userRow } = await supabase
     .from("users")
-    .select("role")
+    .select("role, roles")
     .eq("id", user.id)
     .single();
-  if (userRow?.role !== "company") throw new Error("Company account required");
+  if (!hasRole(userRow, "company")) throw new Error("Company account required");
 
   const { data: company } = await supabase
     .from("companies")

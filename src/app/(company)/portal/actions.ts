@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { revalidatePath } from "next/cache";
 
 export interface InviteResult {
@@ -29,10 +30,10 @@ export async function sendInterviewInvite(
 
   const { data: userRow } = await supabase
     .from("users")
-    .select("role")
+    .select("role, roles")
     .eq("id", user.id)
     .single();
-  if (userRow?.role !== "company") {
+  if (!hasRole(userRow, "company")) {
     return { ok: false, error: "Company account required." };
   }
 

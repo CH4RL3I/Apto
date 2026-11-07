@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -63,12 +64,7 @@ export default async function DashboardPage() {
 
   // Multi-role: a user with both 'student' and 'company' should see /dashboard
   // when they came here. Only bounce a company-only user to /portal.
-  const roles: string[] = Array.isArray(userData?.roles)
-    ? (userData.roles as string[])
-    : userData?.role
-      ? [userData.role as string]
-      : [];
-  if (!roles.includes("student") && roles.includes("company")) {
+  if (!hasRole(userData, "student") && hasRole(userData, "company")) {
     redirect("/portal");
   }
 

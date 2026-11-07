@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { withPersistentMaxAge } from "@/lib/supabase/cookies";
+import { rolesOf } from "@/lib/auth/roles";
 
 // Same fallback pattern as supabase/{client,server}.ts — keeps preview
 // builds without env vars from blowing up.
@@ -104,17 +105,26 @@ export async function GET(request: NextRequest) {
   // Existing user. If they're trying to act in a role they don't yet have,
   // grant it. Fall back to the legacy single `role` column if `roles` is
   // missing (e.g. row predates the migration trigger backfill).
-  const currentRoles: string[] = Array.isArray(existingUser.roles)
-    ? (existingUser.roles as string[])
-    : existingUser.role
-      ? [existingUser.role as string]
-      : [];
+  const currentRoles = rolesOf(existingUser);
   if (!currentRoles.includes(requestedRole)) {
     const newRoles = [...currentRoles, requestedRole];
-    await supabase
+    const { error: grantError } = await supabase
       .from("users")
       .update({ roles: newRoles })
       .eq("id", user.id);
+    if (grantError) {
+      // Don't send the user to a portal they could not be granted access to.
+      // Fall back to a destination their existing role can reach.
+      console.error("auth/callback: granting role failed", {
+        requestedRole,
+        message: grantError.message,
+      });
+      return redirectTo(
+        currentRoles.includes("student") || currentRoles.length === 0
+          ? next
+          : "/portal",
+      );
+    }
     if (requestedRole === "student") {
       // Ensure a profiles row exists so the student-side dashboard works.
       await supabase

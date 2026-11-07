@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
@@ -68,10 +69,10 @@ export default async function SubmissionsPage({
 
   const { data: userRow } = await supabase
     .from("users")
-    .select("role")
+    .select("role, roles")
     .eq("id", user.id)
     .single();
-  if (userRow?.role !== "company") redirect("/dashboard");
+  if (!hasRole(userRow, "company")) redirect("/dashboard");
 
   const { data: company } = await supabase
     .from("companies")

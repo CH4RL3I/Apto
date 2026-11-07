@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -52,13 +53,8 @@ export default async function CompanyPortalLandingPage() {
   // Multi-role: render portal if the user has 'company' in their roles array
   // (falling back to the legacy role column). A student-only user gets
   // bounced to /dashboard; a user with neither role goes to /login.
-  const roles: string[] = Array.isArray((userRow as { roles?: unknown })?.roles)
-    ? ((userRow as { roles: string[] }).roles)
-    : userRow?.role
-      ? [userRow.role as string]
-      : [];
-  if (!roles.includes("company")) {
-    if (roles.includes("student")) redirect("/dashboard");
+  if (!hasRole(userRow, "company")) {
+    if (hasRole(userRow, "student")) redirect("/dashboard");
     redirect("/login");
   }
 

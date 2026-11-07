@@ -7,10 +7,19 @@
 -- a single auth.user can hold both 'student' and 'company' at once.
 --
 -- The legacy `role` column is kept and mirrors `roles[1]` via trigger so any
--- existing code (RLS policies, queries) that reads `role` continues to work
--- while new code migrates to reading `roles`.
+-- existing code (RLS policies such as is_company(), queries) that reads `role`
+-- continues to work while new code reads `roles`.
 --
--- Idempotent: safe to re-run.
+-- The trigger works in both directions for rows that only set one column:
+--   * roles empty/null  -> roles := array[role]   (legacy writers, e.g. the
+--                          handle_new_auth_user signup trigger, only set role)
+--   * roles non-empty   -> role  := roles[1]
+--
+-- Idempotent: safe to re-run. Deliberately does NOT swallow errors: if the
+-- backfill, constraint or trigger cannot be created, the migration must fail.
+--
+-- Timestamp note: this file was renamed from 20260511135334 to sort after
+-- 20260511140000_connections_redesign, which had already landed on main.
 
 -- 1. Add roles column.
 alter table public.users
@@ -35,27 +44,22 @@ begin
       add constraint users_roles_values_check
       check (roles <@ array['student','company']::text[]);
   end if;
-exception when others then
-  -- Don't block the migration if the constraint already exists in a different
-  -- shape or if backfill produced a stray value; surface it in logs instead.
-  raise notice 'users_roles_values_check add skipped: %', sqlerrm;
 end$$;
 
--- 4. Trigger to keep legacy `role` in sync with roles[1]. New code writes
---    `roles`; this guarantees the deprecated `role` column always reflects the
---    primary (first) role so RLS policies that gate on role keep working.
+-- 4. Trigger keeping `role` and `roles` consistent.
 create or replace function public.sync_users_role_from_roles()
 returns trigger
 language plpgsql
 as $$
 begin
-  if new.roles is not null and array_length(new.roles, 1) >= 1 then
-    -- Only override `role` when it doesn't already match roles[1]. This lets
-    -- callers that still write `role` directly (legacy code path) win, while
-    -- callers that write `roles` get the mirror for free.
-    if new.role is distinct from new.roles[1] then
-      new.role := new.roles[1];
+  if coalesce(array_length(new.roles, 1), 0) = 0 then
+    -- Legacy writer set only `role` (or roles was cleared): derive roles.
+    if new.role is not null then
+      new.roles := array[new.role];
     end if;
+  elsif new.role is distinct from new.roles[1] then
+    -- New code writes `roles`: mirror the primary (first) role into `role`.
+    new.role := new.roles[1];
   end if;
   return new;
 end;
@@ -72,6 +76,4 @@ begin
       before insert or update of roles on public.users
       for each row execute function public.sync_users_role_from_roles();
   end if;
-exception when others then
-  raise notice 'users_sync_role_from_roles trigger create skipped: %', sqlerrm;
 end$$;
