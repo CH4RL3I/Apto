@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -15,10 +16,10 @@ export default async function NewCaseStudyPage() {
 
   const { data: userRow } = await supabase
     .from("users")
-    .select("role")
+    .select("role, roles")
     .eq("id", user.id)
     .single();
-  if (userRow?.role !== "company") redirect("/dashboard");
+  if (!hasRole(userRow, "company")) redirect("/dashboard");
 
   return (
     <div className="min-h-screen bg-pale-sage">

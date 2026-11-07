@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { NextResponse } from "next/server";
 import { sendInviteEmail } from "@/lib/email";
 import { CASE_STUDIES } from "@/lib/questionnaire/case-studies";
@@ -57,11 +58,11 @@ export async function POST(request: Request) {
 
   const { data: userRow } = await supabase
     .from("users")
-    .select("role")
+    .select("role, roles")
     .eq("id", user.id)
     .single();
 
-  if (userRow?.role !== "company") {
+  if (!hasRole(userRow, "company")) {
     return respond(request, wantsJson, 403, "Company account required");
   }
 

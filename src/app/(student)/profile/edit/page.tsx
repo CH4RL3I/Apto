@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { hasRole } from "@/lib/auth/roles";
 import { Logo } from "@/components/Logo";
 import type { ParsedCV } from "@/lib/questionnaire/matching";
 import { ProfileEditForm } from "./ProfileEditForm";
@@ -20,7 +21,9 @@ export default async function ProfileEditPage() {
     .eq("id", user.id)
     .single();
 
-  if (userData?.role === "company") redirect("/portal");
+  if (!hasRole(userData, "student") && hasRole(userData, "company")) {
+    redirect("/portal");
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
